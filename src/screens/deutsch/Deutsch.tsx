@@ -43,6 +43,15 @@ export default function Deutsch() {
   const week = lastNDays(7).map((k) => ({ key: k, label: dowShort(weekday(k)).slice(0, 2), value: (logBy.get(k) ?? []).reduce((s, x) => s + x.minutes, 0), tip: k }))
   const goalDays = g.goalDate ? diffDays(g.goalDate, today) : null
 
+  function editGoal() {
+    const label = prompt('Your German goal', g.goalLabel ?? 'Move to Germany')
+    if (label === null) return
+    const date = prompt('Target date (YYYY-MM-DD)', g.goalDate ?? '')
+    if (date === null) return
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return toast('Use the format YYYY-MM-DD')
+    saveSettings({ german: { ...g, goalLabel: label.trim() || undefined, goalDate: date || undefined } })
+  }
+
   function logMinutes(m: number) {
     put<DeLog>('deLog', { date: today, minutes: m, kind: kind.toLowerCase() })
     toast(`+${m} min of German (${kind}) 🇩🇪`)
@@ -50,8 +59,8 @@ export default function Deutsch() {
 
   return (
     <Page accent="de" subtitle="Deutsch lernen" title="German" actions={<SyncBadge />}>
-      {g.goalLabel && goalDays !== null && (
-        <Card className="mt-1 overflow-hidden" pad={false}>
+      {g.goalLabel && goalDays !== null ? (
+        <Card className="mt-1 overflow-hidden" pad={false} onClick={editGoal}>
           <div className="flex h-1.5">
             <span className="flex-1 bg-[#3a3a37]" />
             <span className="flex-1 bg-[#d03b3b]" />
@@ -65,6 +74,10 @@ export default function Deutsch() {
             </div>
           </div>
         </Card>
+      ) : (
+        <Button variant="soft" className="mt-1" onClick={editGoal}>
+          🇩🇪 Set a German goal & date
+        </Button>
       )}
 
       <Card className="mt-3">
