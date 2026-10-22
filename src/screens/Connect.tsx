@@ -24,7 +24,7 @@ export default function Connect({ error: initialError, onDone }: { error?: strin
     try {
       const gh = new GitHub(owner, name, 'main', token.trim())
       const info = await gh.getRepo()
-      if (!info.permissions?.push) throw new Error('This token can read the repo but not write to it. Give it Contents: Read and write.')
+      if (info.permissions && info.permissions.push === false) throw new Error('This token can read the repo but not write to it. Give it Contents: Read and write.')
       if (!info.private && !confirm(`${info.full_name} is PUBLIC — anyone could read your data. Continue anyway?`)) {
         setBusy(false)
         return
