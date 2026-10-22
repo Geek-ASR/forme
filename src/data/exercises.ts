@@ -264,6 +264,129 @@ export const EXERCISES: Exercise[] = [
     how: ['Stand tall, hands lightly behind your head.', 'Bring one knee up and the opposite elbow towards it.', 'Alternate sides at a steady rhythm.'],
   },
 
+  // ── Dumbbell strength (2 × 5 kg) ──
+  {
+    id: 'db-floor-press', name: 'Dumbbell floor press', kind: 'strength', unit: 'reps', met: 5,
+    how: ['Lie on your back, knees bent, a dumbbell in each hand above your chest.', 'Lower slowly (3 s) until your upper arms touch the floor at about 45° from your body.', 'Pause, then press back up.'],
+    cue: 'Shoulder blades squeezed back into the floor.',
+    spine: 'The floor supports your whole back — one of the safest presses there is.',
+    harder: '1½ reps: lower, press halfway, lower again, press all the way.',
+  },
+  {
+    id: 'db-row', name: 'One-arm dumbbell row', kind: 'strength', unit: 'reps', perSide: true, met: 4.5,
+    how: ['One hand and knee on a chair or bed, back flat like a table.', 'Row the dumbbell to your hip, elbow close to your body.', 'Squeeze 1 s at the top, lower slowly to a full stretch.'],
+    spine: 'Supported on one arm, your back stays neutral — no rounding.',
+  },
+  {
+    id: 'seal-row', name: 'Chest-supported row (on the bed)', kind: 'strength', unit: 'reps', met: 4.5,
+    how: ['Lie face down along the edge of your bed, a dumbbell in each hand hanging towards the floor.', 'Row both dumbbells up, squeezing your shoulder blades together.', 'Lower over 3 seconds to a full stretch.'],
+    spine: 'Rowing with your chest supported builds the upper back with zero load on the spine.',
+  },
+  {
+    id: 'db-ohp', name: 'Seated shoulder press (neutral grip)', kind: 'strength', unit: 'reps', met: 4.5,
+    how: ['Sit tall against a wall or chair back, dumbbells at shoulder height, palms facing each other.', 'Press up until your arms are almost straight, slightly in front of your head.', 'Lower slowly to chin height.'],
+    spine: 'If your lower back arches to get the weights up, press slightly forward instead of straight overhead.',
+  },
+  {
+    id: 'lat-raise', name: 'Lateral raise', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Stand tall, dumbbells at your sides, a slight bend in the elbows.', 'Raise your arms out to the sides to shoulder height, leading with the elbows.', 'Lower over 3 seconds.'],
+    cue: 'Push the dumbbells out, not up. Shoulders stay down, away from the ears.',
+    harder: 'When strict reps run out, finish with half-reps from the bottom.',
+  },
+  {
+    id: 'db-oh-ext', name: 'Overhead triceps extension', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Hold one dumbbell with both hands overhead, seated or standing.', 'Lower it behind your head by bending only the elbows.', 'Extend back up and squeeze the triceps.'],
+    spine: 'Keep your ribs down — don’t let the lower back arch.',
+  },
+  {
+    id: 'db-pullover', name: 'Dumbbell pullover (on the floor)', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Lie on your back, knees bent, one dumbbell held with both hands above your chest.', 'With slightly bent elbows, lower it back over your head as far as comfortable.', 'Pull it back over your chest using your lats.'],
+    spine: 'Doubles as a stretch for the chest and upper back — good for posture.',
+  },
+  {
+    id: 'reverse-fly', name: 'Reverse fly', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Lie face down on the bed edge (or hinge forward with a flat back), dumbbells hanging.', 'Raise your arms out to the sides, thumbs slightly up, squeezing the shoulder blades.', 'Lower slowly.'],
+    spine: 'Rear shoulders and upper back hold you upright — your posture muscles.',
+  },
+  {
+    id: 'db-curl', name: 'Dumbbell curl', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Stand tall, palms forward, elbows pinned to your sides.', 'Curl both dumbbells up without swinging.', 'Lower over 3 seconds.'],
+    harder: 'Slower lowering (4 s), or 21s: 7 bottom-half, 7 top-half, 7 full reps.',
+  },
+  {
+    id: 'hammer-curl', name: 'Hammer curl', kind: 'strength', unit: 'reps', met: 3.5,
+    how: ['Palms facing each other, elbows at your sides.', 'Curl up, squeeze, lower slowly.'],
+  },
+  {
+    id: 'close-pushup', name: 'Close-grip push-up', kind: 'strength', unit: 'reps', met: 4.5,
+    how: ['Hands just under your shoulders, elbows tucked close to the ribs.', 'Lower with control, press up.'],
+    easier: 'Hands on a bed or table (incline).',
+  },
+  {
+    id: 'goblet-squat', name: 'Goblet squat', kind: 'strength', unit: 'reps', met: 5,
+    how: ['Hold one dumbbell vertically at your chest — or both at your shoulders.', 'Sit down between your heels over 3 seconds, chest up, to a chair or as deep as is comfortable.', 'Pause 1 second at the bottom, then stand.'],
+    spine: 'Holding the weight in front keeps your torso upright — kind to the back.',
+    harder: '1½ reps: squat down, rise halfway, back down, then stand.',
+  },
+  {
+    id: 'db-rdl', name: 'Dumbbell Romanian deadlift', kind: 'strength', unit: 'reps', met: 5,
+    how: ['Hold both dumbbells in front of your thighs.', 'Push your hips back with soft knees, sliding the weights to mid-shin with a flat back (3 s down).', 'Stand up by squeezing your glutes.'],
+    spine: 'Neutral spine always — the hinge ends where your back would start to round.',
+  },
+  {
+    id: 'db-reverse-lunge', name: 'Dumbbell reverse lunge', kind: 'strength', unit: 'reps', perSide: true, met: 5,
+    how: ['Dumbbells at your sides.', 'Step back and lower both knees to about 90°.', 'Drive through the front heel to stand.'],
+    easier: 'Split squat holding a wall, no stepping.',
+  },
+  {
+    id: 'bss', name: 'Bulgarian split squat', kind: 'strength', unit: 'reps', perSide: true, met: 5.5,
+    how: ['Rear foot on a chair or bed behind you, dumbbells at your sides.', 'Lower straight down until the front thigh is near parallel.', 'Drive up through the front heel.'],
+    spine: 'If hips or knees complain, shorten the range or put the rear foot back on the floor (split squat).',
+  },
+  {
+    id: 'sl-rdl', name: 'Single-leg Romanian deadlift', kind: 'strength', unit: 'reps', perSide: true, met: 5,
+    how: ['Stand on one leg with the other toes lightly on the floor behind (kickstand).', 'Hinge at the hip with a flat back, dumbbell in the opposite hand.', 'Stand by squeezing the glute of the working leg.'],
+    easier: 'Hold a wall with your free hand.',
+  },
+  {
+    id: 'db-hip-thrust', name: 'Dumbbell hip thrust', kind: 'strength', unit: 'reps', met: 5,
+    how: ['Upper back on the edge of a sofa or bed, both dumbbells on your hips (on a folded towel).', 'Drive your hips up until your body is flat like a table; squeeze 2 seconds.', 'Lower slowly.'],
+    cue: 'Chin tucked, ribs down — move at the hips, not the lower back.',
+  },
+  {
+    id: 'sl-hip-thrust', name: 'Single-leg hip thrust', kind: 'strength', unit: 'reps', perSide: true, met: 5,
+    how: ['Hip-thrust position, one foot lifted, a dumbbell on the working hip.', 'Drive up through the planted heel, squeeze 2 seconds.', 'Lower slowly.'],
+  },
+  {
+    id: 'db-calf', name: 'Single-leg calf raise', kind: 'strength', unit: 'reps', perSide: true, met: 3.5,
+    how: ['Stand on one foot on a step, holding a wall, dumbbell in the same-side hand.', 'Lower the heel fully, pause, rise as high as you can.'],
+  },
+  {
+    id: 'weighted-dead-bug', name: 'Weighted dead bug', kind: 'core', unit: 'reps', perSide: true, met: 3.5,
+    how: ['Lie on your back holding one dumbbell above your chest with both hands, knees bent at 90°.', 'Press your lower back into the floor and slowly extend one leg.', 'Return and switch legs; arms stay still.'],
+    spine: 'Trains the abs to resist arching — the job they do to protect your spine.',
+  },
+  {
+    id: 'mcgill-curlup', name: 'McGill curl-up (8-s holds)', kind: 'core', unit: 'reps', met: 3,
+    how: ['Lie on your back, one knee bent, one leg straight, hands under your lower back.', 'Lift head and shoulders a few centimetres as one unit — no neck bending.', 'Hold 8 seconds, lower. Each hold is one rep.'],
+    spine: 'Works the abs with minimal spinal bending — designed for sensitive backs.',
+  },
+  {
+    id: 'suitcase-carry', name: 'Suitcase carry', kind: 'core', unit: 'sec', perSide: true, met: 4,
+    how: ['Hold one dumbbell at your side.', 'Walk slowly (or stand) tall without leaning towards the weight.', 'Switch hands.'],
+    spine: 'Your obliques work to keep you upright — real-world core strength.',
+  },
+  {
+    id: 'reverse-crunch', name: 'Reverse crunch', kind: 'core', unit: 'reps', met: 3.5,
+    how: ['Lie on your back, knees bent at 90°, hands by your sides.', 'Curl your hips off the floor, bringing knees towards your chest.', 'Lower over 3 seconds.'],
+    spine: 'Slow and controlled. Skip it on days your lower back is sore.',
+  },
+  {
+    id: 'hollow-hold', name: 'Tuck hollow hold', kind: 'core', unit: 'sec', met: 3.5,
+    how: ['Lie on your back and press your lower back into the floor.', 'Lift shoulders and bent knees slightly, arms reaching forward.', 'Hold, breathing steadily.'],
+    harder: 'Straighten the legs a little more each week.',
+  },
+
   // ── Low-impact cardio (nothing leaves the floor) ──
   {
     id: 'march', name: 'High-knee march', kind: 'cardio', unit: 'sec', met: 4,

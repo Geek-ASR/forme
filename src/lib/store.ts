@@ -30,6 +30,7 @@ export const COLLS = {
   activity: { shard: 'month', dir: 'activity', dateField: 'date' },
   deLog: { shard: 'month', dir: 'german-log', dateField: 'date' },
   meds: { shard: 'month', dir: 'meds', dateField: 'date' },
+  lifts: { shard: 'month', dir: 'lifts', dateField: 'date' },
   posts: { shard: 'year', dir: 'writing', dateField: 'date' },
 } as const satisfies Record<string, CollDef>
 

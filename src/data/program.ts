@@ -1,26 +1,31 @@
 // 17-week home program: four phases + a test week. Every day starts with 10 minutes of mobility.
 // Values are per phase: [Foundation, Build, Burn, Define].
+//
+// Two weekly templates: bodyweight-only, and dumbbells (upper/lower split, each muscle twice a week,
+// ~10+ hard sets per muscle per week, sets taken to 1–3 reps short of failure — see PRINCIPLES/SOURCES).
 
 import { diffDays, weekday } from '../lib/date'
 import { EX } from './exercises'
 
-export type Phase = { n: 1 | 2 | 3 | 4; name: string; weeks: [number, number]; focus: string; steps: number }
+export type Phase = { n: 1 | 2 | 3 | 4; name: string; weeks: [number, number]; focus: string; steps: number; effort: string }
 
 export const PHASES: Phase[] = [
-  { n: 1, name: 'Foundation', weeks: [1, 4], focus: 'Learn the movements, build the habit, wake the spine up. Easy is the point.', steps: 7000 },
-  { n: 2, name: 'Build', weeks: [5, 8], focus: 'More rounds, harder variations. Strength starts to show.', steps: 8000 },
-  { n: 3, name: 'Burn', weeks: [9, 12], focus: 'Shorter rests, more volume — the fat-loss engine.', steps: 9000 },
-  { n: 4, name: 'Define', weeks: [13, 17], focus: 'Hardest variations, slow tempo, then retest everything in week 17.', steps: 10000 },
+  { n: 1, name: 'Foundation', weeks: [1, 4], focus: 'Learn the movements, build the habit, wake the spine up. Easy is the point.', steps: 7000, effort: 'Stop every set with 2–3 good reps left in the tank.' },
+  { n: 2, name: 'Build', weeks: [5, 8], focus: 'More sets, slower lowering. Strength starts to show.', steps: 8000, effort: '1–2 reps left; the last set of small exercises can go to failure.' },
+  { n: 3, name: 'Burn', weeks: [9, 12], focus: 'Shorter rests, more volume — the fat-loss engine.', steps: 9000, effort: '0–2 reps left. Use 1½ reps or half-reps to finish isolation sets.' },
+  { n: 4, name: 'Define', weeks: [13, 17], focus: 'Hardest variations, slow tempo, then retest everything in week 17.', steps: 10000, effort: '0–2 reps left, hardest variations. Week 17: retest.' },
 ]
 export const PLAN_WEEKS = 17
 export const BENCHMARK_WEEKS = [1, 5, 9, 13, 17]
 
-type Block = { ex: string | string[]; amt?: number[] }
+type Block = { ex: string | string[]; amt?: number[]; sets?: number[]; range?: [number, number]; rest?: number; tempo?: string }
 export type Session = {
   id: string
   name: string
   kind: 'mobility' | 'strength' | 'circuit' | 'cardio' | 'walk' | 'rest' | 'flare' | 'core'
   mode: 'sets' | 'interval' | 'walk' | 'rest'
+  layout?: 'circuit' | 'straight'
+  equipment?: 'dumbbells'
   met: number
   desc: string
   rounds?: number[]
@@ -54,6 +59,67 @@ export const SESSIONS: Record<string, Session> = {
       { ex: 'supine-twist', amt: [10] }, { ex: 'heel-slide', amt: [8] }, { ex: 'towel-ext', amt: [60] },
     ],
   },
+
+  // ── Dumbbell split (2 × 5 kg) ──
+  upperA: {
+    id: 'upperA', name: 'Upper A · chest, shoulders, rows', kind: 'strength', mode: 'sets', layout: 'straight', equipment: 'dumbbells', met: 5,
+    desc: 'Pressing and rowing for a broad, upright upper body. Straight sets: finish all sets of one exercise, then move on.',
+    items: [
+      { ex: 'db-floor-press', sets: [3, 3, 4, 4], range: [12, 20], rest: 75, tempo: '3 s down · 1 s pause' },
+      { ex: ['incline-pushup', 'knee-pushup', 'pushup', 'pushup'], sets: [3, 3, 3, 3], range: [8, 15], rest: 75 },
+      { ex: 'db-row', sets: [3, 3, 4, 4], range: [12, 20], rest: 60, tempo: '1 s squeeze · 3 s down' },
+      { ex: 'db-ohp', sets: [3, 3, 3, 4], range: [10, 15], rest: 75 },
+      { ex: 'lat-raise', sets: [3, 3, 4, 4], range: [15, 25], rest: 45, tempo: '3 s down' },
+      { ex: 'db-oh-ext', sets: [2, 3, 3, 3], range: [12, 20], rest: 45 },
+    ],
+  },
+  lowerA: {
+    id: 'lowerA', name: 'Lower A · squat, hinge + abs', kind: 'strength', mode: 'sets', layout: 'straight', equipment: 'dumbbells', met: 5,
+    desc: 'Legs and glutes with slow, controlled reps — light dumbbells made hard — then anti-extension ab work.',
+    items: [
+      { ex: 'goblet-squat', sets: [3, 3, 4, 4], range: [15, 20], rest: 75, tempo: '3 s down · 1 s pause' },
+      { ex: 'db-rdl', sets: [3, 3, 4, 4], range: [15, 20], rest: 75, tempo: '3 s down' },
+      { ex: ['db-reverse-lunge', 'db-reverse-lunge', 'bss', 'bss'], sets: [2, 3, 3, 3], range: [10, 15], rest: 60 },
+      { ex: 'db-hip-thrust', sets: [3, 3, 3, 4], range: [15, 25], rest: 60, tempo: '2 s squeeze' },
+      { ex: 'db-calf', sets: [2, 2, 3, 3], range: [12, 20], rest: 45 },
+      { ex: 'weighted-dead-bug', sets: [2, 3, 3, 3], range: [8, 12], rest: 45 },
+      { ex: ['plank-knee', 'plank', 'plank', 'plank'], sets: [2, 2, 3, 3], range: [20, 45], rest: 45 },
+      { ex: 'mcgill-curlup', sets: [2, 2, 3, 3], range: [5, 8], rest: 30 },
+    ],
+  },
+  upperB: {
+    id: 'upperB', name: 'Upper B · back, arms, shoulders', kind: 'strength', mode: 'sets', layout: 'straight', equipment: 'dumbbells', met: 5,
+    desc: 'Back width, rear shoulders and arms — the V-taper that makes the waist look smaller.',
+    items: [
+      { ex: 'seal-row', sets: [3, 3, 4, 4], range: [12, 20], rest: 60, tempo: '1 s squeeze · 3 s down' },
+      { ex: 'db-pullover', sets: [3, 3, 3, 3], range: [12, 20], rest: 60 },
+      { ex: ['incline-pushup', 'knee-pushup', 'close-pushup', 'close-pushup'], sets: [3, 3, 3, 3], range: [8, 15], rest: 60 },
+      { ex: 'lat-raise', sets: [3, 3, 4, 4], range: [15, 25], rest: 45, tempo: '3 s down' },
+      { ex: 'reverse-fly', sets: [3, 3, 3, 4], range: [15, 25], rest: 45 },
+      { ex: 'db-curl', sets: [3, 3, 3, 4], range: [12, 20], rest: 45, tempo: '3 s down' },
+    ],
+  },
+  lowerB: {
+    id: 'lowerB', name: 'Lower B · single-leg + abs', kind: 'strength', mode: 'sets', layout: 'straight', equipment: 'dumbbells', met: 5,
+    desc: 'One leg at a time doubles what 5 kg can do. Then side-to-side core work for a strong, narrow waist.',
+    items: [
+      { ex: ['db-reverse-lunge', 'bss', 'bss', 'bss'], sets: [3, 3, 4, 4], range: [8, 15], rest: 75 },
+      { ex: ['db-rdl', 'sl-rdl', 'sl-rdl', 'sl-rdl'], sets: [3, 3, 3, 4], range: [10, 15], rest: 60 },
+      { ex: 'goblet-squat', sets: [2, 3, 3, 3], range: [15, 20], rest: 60, tempo: '1½ reps from phase 3' },
+      { ex: ['db-hip-thrust', 'sl-hip-thrust', 'sl-hip-thrust', 'sl-hip-thrust'], sets: [3, 3, 3, 3], range: [12, 20], rest: 60 },
+      { ex: ['side-plank-knee', 'side-plank-knee', 'side-plank', 'side-plank'], sets: [2, 3, 3, 3], range: [20, 40], rest: 30 },
+      { ex: 'suitcase-carry', sets: [2, 2, 3, 3], range: [30, 45], rest: 30 },
+      { ex: 'reverse-crunch', sets: [2, 3, 3, 3], range: [10, 15], rest: 45 },
+    ],
+  },
+  finisher: {
+    id: 'finisher', name: 'Abs & arms finisher', kind: 'core', mode: 'interval', equipment: 'dumbbells', met: 4,
+    desc: 'Optional, ten minutes after the long walk: arms and abs, low impact, high pump.',
+    rounds: [2, 2, 3, 3], work: [30, 35, 40, 40], rest: [20, 20, 15, 15], roundRest: 45,
+    items: [{ ex: 'hammer-curl' }, { ex: 'db-oh-ext' }, { ex: 'hollow-hold' }, { ex: 'lat-raise' }, { ex: 'bird-dog' }],
+  },
+
+  // ── Bodyweight template (no equipment) ──
   strengthA: {
     id: 'strengthA', name: 'Strength A · legs, push, posture', kind: 'strength', mode: 'sets', met: 4.5,
     desc: 'Squat, push, bridge and the upper-back work that keeps you upright.',
@@ -123,14 +189,39 @@ export const SESSIONS: Record<string, Session> = {
 export const WEEK_PLAN: Record<number, string[]> = {
   1: ['strengthA'], 2: ['cardio'], 3: ['strengthB'], 4: ['walk', 'posture'], 5: ['circuit'], 6: ['longwalk'], 0: ['rest'],
 }
+/** With dumbbells: upper/lower split, each muscle twice a week, cardio and walks for fat loss. */
+export const WEEK_PLAN_DB: Record<number, string[]> = {
+  1: ['upperA'], 2: ['lowerA'], 3: ['cardio', 'posture'], 4: ['upperB'], 5: ['lowerB'], 6: ['longwalk', 'finisher'], 0: ['rest'],
+}
 
-export type ResolvedItem = { exId: string; amt: number; unit: 'reps' | 'sec'; perSide: boolean }
+export type ResolvedItem = {
+  exId: string
+  amt: number
+  unit: 'reps' | 'sec'
+  perSide: boolean
+  sets?: number
+  range?: [number, number]
+  rest?: number
+  tempo?: string
+}
 
 export function resolveItems(s: Session, phase: number): ResolvedItem[] {
   return s.items.map((b) => {
     const exId = Array.isArray(b.ex) ? at(b.ex, phase, b.ex[0]) : b.ex
     const ex = EX[exId]
     if (s.mode === 'interval') return { exId, amt: at(s.work, phase, 30), unit: 'sec', perSide: false }
+    if (s.layout === 'straight' && b.range) {
+      return {
+        exId,
+        amt: ex.unit === 'sec' ? (phase <= 2 ? b.range[0] : b.range[1]) : b.range[0],
+        unit: ex.unit,
+        perSide: !!ex.perSide,
+        sets: at(b.sets, phase, 3),
+        range: b.range,
+        rest: b.rest ?? 60,
+        tempo: b.tempo,
+      }
+    }
     return { exId, amt: at(b.amt, phase, 10), unit: ex.unit, perSide: !!ex.perSide }
   })
 }
@@ -151,6 +242,15 @@ export function sessionMinutes(s: Session, phase: number): number {
   if (s.mode === 'walk') return p.walkMin
   if (s.mode === 'rest') return 0
   const items = resolveItems(s, phase)
+  if (s.layout === 'straight') {
+    let sec = 0
+    for (const it of items) {
+      const side = it.perSide ? 2 : 1
+      const work = it.unit === 'sec' ? it.amt : ((it.range?.[0] ?? 12) + (it.range?.[1] ?? 12)) / 2 * 3.5
+      sec += (it.sets ?? 3) * (work * side + (it.rest ?? 60))
+    }
+    return Math.round((sec + 180) / 60)
+  }
   let sec = 0
   for (const it of items) {
     const side = it.perSide ? 2 : 1
@@ -159,11 +259,12 @@ export function sessionMinutes(s: Session, phase: number): number {
   return Math.max(5, Math.round((sec * p.rounds + p.roundRest * (p.rounds - 1) + (s.mode === 'interval' ? 120 : 60)) / 60))
 }
 
-export function programDay(planStart: string, date: string) {
+export function programDay(planStart: string, date: string, dumbbells = false) {
   const idx = diffDays(date, planStart)
   const week = Math.floor(idx / 7) + 1
   const clampedWeek = Math.min(Math.max(week, 1), PLAN_WEEKS)
   const phaseObj = PHASES.find((p) => clampedWeek >= p.weeks[0] && clampedWeek <= p.weeks[1]) ?? PHASES[3]
+  const plan = dumbbells ? WEEK_PLAN_DB : WEEK_PLAN
   return {
     day: idx + 1,
     week: clampedWeek,
@@ -172,6 +273,19 @@ export function programDay(planStart: string, date: string) {
     before: idx < 0,
     after: idx >= PLAN_WEEKS * 7,
     benchmark: BENCHMARK_WEEKS.includes(clampedWeek),
-    sessions: (WEEK_PLAN[weekday(date)] ?? ['rest']).map((id) => SESSIONS[id]),
+    sessions: (plan[weekday(date)] ?? ['rest']).map((id) => SESSIONS[id]),
   }
 }
+
+export const weekPlanFor = (dumbbells: boolean) => (dumbbells ? WEEK_PLAN_DB : WEEK_PLAN)
+
+/** Weekly hard sets per muscle in the dumbbell template, by phase (shown in the plan). */
+export const DB_VOLUME = [
+  { muscle: 'Chest', sets: [9, 9, 10, 10] },
+  { muscle: 'Back & lats', sets: [12, 12, 14, 15] },
+  { muscle: 'Side shoulders', sets: [9, 9, 11, 12] },
+  { muscle: 'Arms', sets: [8, 9, 9, 10] },
+  { muscle: 'Quads & glutes', sets: [13, 15, 17, 17] },
+  { muscle: 'Hamstrings', sets: [6, 6, 7, 8] },
+  { muscle: 'Abs & core', sets: [12, 15, 18, 18] },
+]

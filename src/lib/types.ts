@@ -76,6 +76,7 @@ export type Settings = Rec & {
   german: { level: Level; newPerDay: number; direction: 'de-en' | 'en-de' | 'mixed'; goalLabel?: string; goalDate?: string }
   hybrid?: { nextIdea: number; books?: Partial<Record<HBook, string>> }
   ratingCats?: RatingCat[]
+  training?: { dumbbellKg?: number; dumbbells?: number }
 }
 
 export type Day = Rec & {
@@ -249,3 +250,6 @@ export type Rating = Rec & {
   again?: boolean
   createdAt: number
 }
+
+/** One exercise in one session: reps (or seconds) achieved per set. */
+export type Lift = Rec & { date: string; session: string; exId: string; reps: number[]; unit: 'reps' | 'sec'; kg?: number }

@@ -12,6 +12,7 @@ import type { Activity, BodyEntry, Day, DeLog, FoodEntry, HybridNote, Meal, Post
 export function mergeSettings(s?: Settings): Settings {
   const d = DEFAULT_SETTINGS
   return {
+    ...s, // keep every stored field (training, ratingCats, future additions) — never drop data on save
     id: 'main',
     updatedAt: s?.updatedAt ?? 0,
     targets: { ...d.targets, ...s?.targets },
@@ -98,7 +99,7 @@ export function useDayData(date: string) {
     const kg = weightOn(body, date, profile.startWeightKg)
     const steps = day?.steps ?? 0
     const burn = dayBurn(profile, kg, date, steps, acts)
-    const program = programDay(profile.planStart, date)
+    const program = programDay(profile.planStart, date, !!settings.training?.dumbbellKg)
     const stepsTarget = stepsTargetFor(settings, program.phase.steps ?? PHASES[0].steps)
     const startOfDay = new Date(date + 'T00:00:00').getTime()
     const wrote = (postsBy.get(date)?.length ?? 0) > 0 || hybrid.some((h) => h.createdAt >= startOfDay && h.createdAt < startOfDay + 86400000)
