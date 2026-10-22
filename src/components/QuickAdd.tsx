@@ -1,4 +1,4 @@
-import { BookA, Droplet, Dumbbell, Feather, Footprints, Orbit, Pill as PillIcon, Scale, Utensils, Activity as ActivityIcon } from 'lucide-react'
+import { BookA, Droplet, Dumbbell, Feather, Footprints, Orbit, Pill as PillIcon, Scale, Star, Utensils, Activity as ActivityIcon } from 'lucide-react'
 import { useState } from 'react'
 import { addWater, patchDay, useProfile } from '../lib/app'
 import { dkey, hm } from '../lib/date'
@@ -44,6 +44,7 @@ export function QuickAdd({ open, onClose, day }: { open: boolean; onClose: () =>
           {tile('Thought', <Feather size={22} />, () => go('/mind/new?type=thought'))}
           {tile('Book idea', <Orbit size={22} />, () => go('/hybrid/new'))}
           {tile('German word', <BookA size={22} />, () => go('/deutsch/words?add=1'))}
+          {tile('Rate', <Star size={22} />, () => go('/ratings/new'))}
           {meds.map((m) =>
             tile(m.name.length > 14 ? m.name.slice(0, 13) + '…' : m.name, <PillIcon size={22} />, () => {
               const rec = put<MedLog>('meds', { date, time: hm(), name: m.name })

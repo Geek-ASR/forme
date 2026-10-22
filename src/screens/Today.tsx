@@ -11,7 +11,7 @@ import { Bar, Button, Card, Fab, Page, Pill, Ring, Section, cx } from '../compon
 import { wordOfDay } from '../data/german'
 import { promptOfDay } from '../data/prompts'
 import { SESSIONS, sessionMinutes } from '../data/program'
-import { TONIGHT_LABEL, tonight } from '../data/skincare'
+import { NIGHT_LABEL, skinNight } from '../data/skincare'
 import { addWater, evaluateRoutine, patchDay, setCheck, useDayData, useWeightNow } from '../lib/app'
 import { kfmt } from '../lib/calc'
 import { diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekday } from '../lib/date'
@@ -38,7 +38,7 @@ export default function Today() {
   const balance = d.totals.kcal - d.burn.total
   const flare = !!d.day?.flare
   const sessions = flare ? [SESSIONS.flare] : d.program.sessions
-  const skin = tonight(d.profile.skinStart, date, d.day?.skinIrritated)
+  const skin = skinNight({ skinStart: d.profile.skinStart, date, irritated: d.day?.skinIrritated, products: d.settings.skincare.products })
   const word = wordOfDay(date)
   const due = srs.filter((s) => s.due <= date).length
 
@@ -242,7 +242,7 @@ export default function Today() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[15.5px] font-semibold">Skincare tonight</div>
-                <div className="text-[13px] text-ink3">{TONIGHT_LABEL[skin]} · morning: vitamin C + SPF</div>
+                <div className="text-[13px] text-ink3">{NIGHT_LABEL[skin]} · morning: vitamin C + SPF</div>
               </div>
               <ChevronRight size={18} className="text-ink3" />
             </div>

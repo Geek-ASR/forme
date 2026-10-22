@@ -24,6 +24,7 @@ export const COLLS = {
   srs: { shard: 'single', dir: 'german-srs' },
   words: { shard: 'single', dir: 'german-words' },
   push: { shard: 'single', dir: 'push' },
+  ratings: { shard: 'single', dir: 'ratings' },
   days: { shard: 'month', dir: 'days', dateField: 'id' },
   food: { shard: 'month', dir: 'food', dateField: 'date' },
   activity: { shard: 'month', dir: 'activity', dateField: 'date' },

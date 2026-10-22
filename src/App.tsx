@@ -40,6 +40,9 @@ import Routine from './screens/me/Routine'
 import ProfileScreen from './screens/me/Profile'
 import Settings from './screens/me/Settings'
 import Blog from './screens/public/Blog'
+import Ratings from './screens/ratings/Ratings'
+import RatingEdit from './screens/ratings/RatingEdit'
+import RatingView from './screens/ratings/RatingView'
 import { Spinner } from './components/ui'
 
 type R = [string, (p: Record<string, string>) => React.ReactNode]
@@ -64,6 +67,10 @@ const ROUTES: R[] = [
   ['/hybrid/edit/:id', (p) => <HybridEditor id={p.id} />],
   ['/hybrid/n/:id', (p) => <HybridNoteView id={p.id} />],
   ['/hybrid/loop', () => <Loop />],
+  ['/ratings', () => <Ratings />],
+  ['/ratings/new', () => <RatingEdit />],
+  ['/ratings/edit/:id', (p) => <RatingEdit id={p.id} />],
+  ['/ratings/r/:id', (p) => <RatingView id={p.id} />],
   ['/deutsch', () => <Deutsch />],
   ['/deutsch/review', () => <Review />],
   ['/deutsch/sprint', () => <Sprint />],

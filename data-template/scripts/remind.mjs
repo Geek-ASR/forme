@@ -73,10 +73,14 @@ const meals = new Set(food.map((f) => f.meal))
 
 function skinTonight() {
   if (day.skinIrritated) return 'rest'
-  const start = profile.skinStart ? new Date(profile.skinStart + 'T00:00:00Z') : new Date(date + 'T00:00:00Z')
-  const weeks = Math.floor((new Date(date + 'T00:00:00Z') - start) / (7 * 86400000))
-  const nights = weeks < 2 ? [1, 4] : weeks < 5 ? [1, 3, 5] : [0, 1, 3, 5]
-  return nights.includes(dow) ? 'bha' : 'arbutin'
+  const products = settings.skincare?.products ?? []
+  const ret = products.find((p) => p.role === 'retinoid' && p.have)?.openedOn
+  const days = (a, b) => Math.round((new Date(a + 'T00:00:00Z') - new Date(b + 'T00:00:00Z')) / 86400000)
+  const weeks = profile.skinStart ? Math.floor(days(date, profile.skinStart) / 7) : 0
+  const sa = ret && date >= ret ? [1, 3, 5] : weeks < 2 ? [1, 3, 5] : [0, 1, 3, 5]
+  if (sa.includes(dow)) return 'bha'
+  const rt = !ret || date < ret ? [] : days(date, ret) < 14 ? [2, 6] : [2, 4, 6]
+  return rt.includes(dow) ? 'retinoid' : 'arbutin'
 }
 
 function personalise(r) {
@@ -90,7 +94,12 @@ function personalise(r) {
     case 'skin-pm': {
       if (checks['skin-pm']) return null
       const n = skinTonight()
-      const body = n === 'bha' ? 'Salicylic acid night: cleanse → SA serum → moisturiser → lip balm.' : n === 'arbutin' ? 'Alpha arbutin night: cleanse → arbutin → moisturiser → lip balm.' : 'Recovery night: cleanse and moisturise only.'
+      const body = {
+        bha: 'Salicylic acid night: cleanse → SA serum → moisturiser → lip balm.',
+        arbutin: 'Alpha arbutin night: cleanse → arbutin → moisturiser → lip balm.',
+        retinoid: 'Retinoid night: cleanse → pea-sized retinoid on dry skin → moisturiser.',
+        rest: 'Recovery night: cleanse gently and moisturise only.',
+      }[n]
       return { ...r, body }
     }
     case 'workout':

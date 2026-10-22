@@ -55,7 +55,9 @@ export type Reminder = {
   url?: string
 }
 
-export type ProductRole = 'cleanser' | 'vitc' | 'arbutin' | 'bha' | 'moisturizer' | 'sunscreen' | 'lip' | 'hair' | 'other'
+export type ProductRole =
+  | 'cleanser' | 'gentle' | 'vitc' | 'niacinamide' | 'arbutin' | 'bha' | 'retinoid' | 'moisturizer' | 'sunscreen'
+  | 'lip' | 'lipspf' | 'hair' | 'eye' | 'aftershave' | 'bodywash' | 'shampoo' | 'other'
 export type Product = {
   id: string
   name: string
@@ -73,6 +75,7 @@ export type Settings = Rec & {
   skincare: { products: Product[] }
   german: { level: Level; newPerDay: number; direction: 'de-en' | 'en-de' | 'mixed'; goalLabel?: string; goalDate?: string }
   hybrid?: { nextIdea: number; books?: Partial<Record<HBook, string>> }
+  ratingCats?: RatingCat[]
 }
 
 export type Day = Rec & {
@@ -87,6 +90,8 @@ export type Day = Rec & {
   checks?: Record<string, boolean>
   flare?: boolean
   skinIrritated?: boolean
+  skinFeel?: 'oily' | 'balanced' | 'tight' | 'irritated'
+  skinBreakouts?: 0 | 1 | 2
   note?: string
 }
 
@@ -224,3 +229,23 @@ export type Review = Rec & {
 }
 
 export type PushSub = Rec & { endpoint: string; keys: { p256dh: string; auth: string }; device: string; createdAt: number }
+
+export type RatingCat = { id: string; label: string; emoji: string; by?: string; where?: string; doing?: string; want?: string; hidden?: boolean }
+export type RatingStatus = 'done' | 'want' | 'doing'
+export type Rating = Rec & {
+  title: string
+  cat: string
+  status: RatingStatus
+  stars?: number // 0.5–5 in halves
+  date?: string
+  by?: string
+  where?: string
+  year?: number
+  price?: number
+  progress?: string
+  notes?: string
+  tags?: string[]
+  fav?: boolean
+  again?: boolean
+  createdAt: number
+}

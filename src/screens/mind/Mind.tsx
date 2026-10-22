@@ -10,7 +10,7 @@ import { dkey, fmtLong } from '../../lib/date'
 import { excerpt, wordCount } from '../../lib/md'
 import { go } from '../../lib/router'
 import { useColl } from '../../lib/store'
-import type { HybridNote, Post, PostType } from '../../lib/types'
+import type { HybridNote, Post, PostType, Rating } from '../../lib/types'
 import { useBooks } from '../hybrid/common'
 
 export const TYPES: { value: PostType; label: string; hint: string }[] = [
@@ -27,6 +27,7 @@ export default function Mind() {
   const posts = useColl<Post>('posts')
   const hybrid = useColl<HybridNote>('hybrid')
   const books = useBooks()
+  const ratings = useColl<Rating>('ratings')
   const [filter, setFilter] = useState<'all' | PostType>('all')
   const [q, setQ] = useState('')
   const [searching, setSearching] = useState(false)
@@ -55,6 +56,17 @@ export default function Mind() {
         <div className="mt-1 text-[13.5px] text-white/75">
           {books.b1} · {books.b2} · {books.b3} — {hybrid.filter((h) => h.kind !== 'loop').length} notes · {openQuestions} unresolved
         </div>
+      </a>
+
+      <a href="#/ratings" className="press mt-2.5 flex items-center gap-3 rounded-3xl border border-line bg-card p-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-acc-soft text-[24px]">⭐</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[16px] font-semibold">Ratings</span>
+          <span className="block truncate text-[13px] text-ink3">
+            {ratings.length ? `${ratings.filter((r) => r.status === 'done').length} rated · ${ratings.filter((r) => r.status !== 'done').length} on your lists` : 'Movies, anime, drinks, chocolates, places…'}
+          </span>
+        </span>
+        <span className="text-[13px] font-semibold text-acc">Open →</span>
       </a>
 
       <div className="mt-3 grid grid-cols-3 gap-2.5">

@@ -1,4 +1,4 @@
-import { BookHeart, ChartLine, ClipboardList, Mail, Settings as SettingsIcon, Target, UserRound, CalendarCheck } from 'lucide-react'
+import { BookHeart, ChartLine, ClipboardList, Mail, Settings as SettingsIcon, Star, Target, UserRound, CalendarCheck } from 'lucide-react'
 import { useMemo } from 'react'
 import { Heatmap, MoodMonth } from '../../components/charts'
 import { SyncBadge } from '../../components/SyncBadge'
@@ -16,6 +16,7 @@ const LINKS = [
   { href: '#/me/goals', label: 'Goals', sub: 'Body, German, book, life', Icon: Target },
   { href: '#/me/manual', label: 'Manual of me', sub: 'Values, energy, principles', Icon: BookHeart },
   { href: '#/me/letters', label: 'Letters', sub: 'To your future self', Icon: Mail },
+  { href: '#/ratings', label: 'Ratings', sub: 'Your taste, rated', Icon: Star },
   { href: '#/me/routine', label: 'Routine & reminders', sub: 'Checklist, notifications', Icon: ClipboardList },
   { href: '#/me/profile', label: 'Profile & targets', sub: 'Body stats, calories, protein', Icon: UserRound },
   { href: '#/me/settings', label: 'Settings & sync', sub: 'GitHub, lock, backup', Icon: SettingsIcon },

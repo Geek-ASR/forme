@@ -4,12 +4,12 @@ import { cx } from './ui'
 const TABS = [
   { key: 'today', href: '#/', label: 'Today', Icon: Sun, match: (p: string) => p === '/' },
   { key: 'body', href: '#/body', label: 'Body', Icon: Dumbbell, match: (p: string) => p.startsWith('/body') },
-  { key: 'mind', href: '#/mind', label: 'Mind', Icon: Feather, match: (p: string) => p.startsWith('/mind') || p.startsWith('/hybrid') },
+  { key: 'mind', href: '#/mind', label: 'Mind', Icon: Feather, match: (p: string) => p.startsWith('/mind') || p.startsWith('/hybrid') || p.startsWith('/ratings') },
   { key: 'de', href: '#/deutsch', label: 'Deutsch', Icon: Languages, match: (p: string) => p.startsWith('/deutsch') },
   { key: 'me', href: '#/me', label: 'Me', Icon: CircleUser, match: (p: string) => p.startsWith('/me') },
 ]
 
-const IMMERSIVE = [/^\/body\/workout\//, /^\/body\/food\/add/, /^\/deutsch\/(review|sprint)/, /^\/mind\/(new|edit)/, /^\/hybrid\/(new|edit)/]
+const IMMERSIVE = [/^\/body\/workout\//, /^\/body\/food\/add/, /^\/deutsch\/(review|sprint)/, /^\/mind\/(new|edit)/, /^\/hybrid\/(new|edit)/, /^\/ratings\/(new|edit)/]
 export const hideNavFor = (path: string) => IMMERSIVE.some((r) => r.test(path))
 
 export function BottomNav({ path }: { path: string }) {
