@@ -411,7 +411,7 @@ function GuideTab({ products }: { products: Product[] }) {
         <div className="space-y-2.5">
           {WHAT_IT_DOES.filter((w) => roles.has(w.role) || roles.size === 0).map((w) => (
             <Card key={w.role}>
-              <div className="text-[15px] font-semibold">{w.name}</div>
+              <div className="text-[15px] font-semibold">{products.find((p) => p.role === w.role && p.have)?.name ?? w.name}</div>
               <div className="mt-1 text-[13.5px] leading-relaxed text-ink2">{w.does}</div>
             </Card>
           ))}
