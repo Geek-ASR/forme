@@ -1,0 +1,23 @@
+{
+  "name": "Forme",
+  "short_name": "Forme",
+  "description": "A private space to take care of yourself — body, mind, words and German.",
+  "id": "./",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "categories": ["health", "lifestyle", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Log food", "url": "./#/body/food/add", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Write a thought", "url": "./#/mind/new?type=thought", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "German review", "url": "./#/deutsch/review", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

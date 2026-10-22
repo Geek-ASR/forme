@@ -1,0 +1,10 @@
+{
+  "name": "forme-data",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Private data for Forme. Only the reminder sender has dependencies.",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

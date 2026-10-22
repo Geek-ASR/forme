@@ -1,0 +1,30 @@
+{
+  "name": "forme",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Forme — a private, mobile-first space to take care of yourself. Body, mind, German and The Hybrid World. Data lives in a private GitHub repo.",
+  "author": "Aditya Rekhe",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "deck": "node scripts/build-deck.mjs ../Germantutor/data/vocabulary",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^1.61.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~6.0.3",
+    "vite": "^8.1.1"
+  }
+}

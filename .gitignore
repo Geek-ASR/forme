@@ -1,0 +1,12 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vite
+coverage
+
+# Personal data never belongs in this public repo — it lives in the private forme-data repo.
+/data/
+/forme-data/
+*.secret
+.env*
