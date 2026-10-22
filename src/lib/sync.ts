@@ -103,7 +103,8 @@ async function pull(gh: GitHub, head: string) {
     }
     const f = S.mergeRemote(it.path, records, it.sha)
     if (!f) return
-    remoteCounts.set(it.path, records.length)
+    // unique ids — a hand-edited file with a duplicate id must not trip the safety stop
+    remoteCounts.set(it.path, new Set(records.map((r) => r?.id).filter(Boolean)).size)
     const rev = f.rev
     const sha = await gitBlobSha(S.serialize(f))
     if (f.rev === rev) S.setDirty(f, sha !== it.sha)
