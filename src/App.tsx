@@ -6,6 +6,7 @@ import { drainInbox } from './lib/inbox'
 import { match, useRoute } from './lib/router'
 import { hasAnyData, loadStore } from './lib/store'
 import { initSync, isSettled, scheduleSync, useSync } from './lib/sync'
+import Challenge from './screens/Challenge'
 import Connect from './screens/Connect'
 import Evening from './screens/Evening'
 import Lock from './screens/Lock'
@@ -53,6 +54,7 @@ type R = [string, (p: Record<string, string>) => React.ReactNode]
 const ROUTES: R[] = [
   ['/', () => <Today />],
   ['/evening', () => <Evening />],
+  ['/challenge', () => <Challenge />],
   ['/log', () => <QuickLog />],
   ['/share', () => <Share />],
   ['/body', () => <Body />],

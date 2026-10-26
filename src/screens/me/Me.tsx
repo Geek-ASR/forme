@@ -75,7 +75,7 @@ export default function Me() {
         ))}
       </div>
 
-      <Section title="Showing up · 17 weeks">
+      <Section title="Showing up · last 17 weeks" action={<a href="#/challenge" className="text-[13px] font-semibold text-acc">Challenge →</a>}>
         <Card>
           <Heatmap
             label="Daily consistency over the plan"

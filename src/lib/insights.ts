@@ -29,7 +29,7 @@ export function useActiveDays(): Set<string> {
 
 export type DayScore = { date: string; score: number; parts: Record<string, boolean> }
 
-export function useShowingUp(days = 119): DayScore[] {
+export function useShowingUp(days = 119, until?: string): DayScore[] {
   const { profile } = useProfile()
   const settings = useSettings()
   const foodBy = useByDate<FoodEntry>('food')
@@ -39,11 +39,12 @@ export function useShowingUp(days = 119): DayScore[] {
   const dayList = useColl<Day>('days')
   return useMemo(() => {
     const dayMap = new Map(dayList.map((d) => [d.id, d]))
-    const end = dkey()
+    const end = until ?? dkey()
+    if (days < 1) return []
     return rangeKeys(addDays(end, -(days - 1)), end).map((date) => {
       const d = dayMap.get(date)
       const steps = settings.targets.stepsOverride || programDay(profile.planStart, date).phase.steps
-      const meals = new Set((foodBy.get(date) ?? []).map((f) => f.meal)).size
+      const meals = new Set([...(foodBy.get(date) ?? []).map((f) => f.meal), ...(d?.skipped ?? [])]).size
       const acts = actBy.get(date) ?? []
       const parts = {
         food: meals >= 2,
@@ -57,7 +58,7 @@ export function useShowingUp(days = 119): DayScore[] {
       const n = Object.values(parts).filter(Boolean).length
       return { date, score: n / Object.keys(parts).length, parts }
     })
-  }, [dayList, foodBy, actBy, deBy, postBy, settings, profile.planStart, days])
+  }, [dayList, foodBy, actBy, deBy, postBy, settings, profile.planStart, days, until])
 }
 
 export const heatLevel = (s: number): 0 | 1 | 2 | 3 | 4 => (s === 0 ? 0 : s < 0.3 ? 1 : s < 0.55 ? 2 : s < 0.8 ? 3 : 4)

@@ -179,12 +179,13 @@ export function evaluateRoutine(d: DayData): ItemStatus[] {
     })
 }
 
-export type Focus = { id: string; label: string; detail?: string; icon: string; href?: string; check?: string; water?: boolean; at: number }
+export type Focus = { id: string; label: string; detail?: string; icon: string; href?: string; check?: string; water?: boolean; protein?: boolean; at: number }
 
 /**
  * "Next up" on Today: at most three things worth doing now. Timed habits show from an hour before
  * until three hours after their time (then they quietly drop off — no guilt list), meals nudge during
- * the day, water only when well behind pace, and from 7 pm the evening check-in takes over.
+ * the day, protein in the afternoon if it's well short, water only when well behind pace, and from
+ * 7 pm the evening check-in takes over.
  */
 export function focusItems(d: DayData, routine: ItemStatus[], nowMin: number): { now: Focus[]; next?: Focus } {
   const items: Focus[] = []
@@ -207,6 +208,10 @@ export function focusItems(d: DayData, routine: ItemStatus[], nowMin: number): {
   const pace = target * Math.min(1, Math.max(0, (nowMin - 9 * 60) / (12 * 60)))
   if (ml < target && ml < pace - 500) {
     items.push({ id: 'water', label: 'Have a glass of water', detail: `${(ml / 1000).toFixed(1)} of ${target / 1000} L so far`, icon: 'droplet', water: true, at: nowMin })
+  }
+  const pt = d.settings.targets.protein
+  if (nowMin >= 15 * 60 && nowMin < 21 * 60 && d.totals.p < pt * 0.6) {
+    items.push({ id: 'protein', label: 'Get some protein in', detail: `${Math.round(d.totals.p)} of ${pt} g so far · ideas`, icon: 'zap', protein: true, at: 15 * 60 })
   }
   if (evening && !d.day?.closedAt) {
     items.push({ id: 'close', label: 'Close the day', detail: '30 seconds · meals, water, steps', icon: 'moon', href: '#/evening', at: nowMin >= 21 * 60 ? -1 : 21 * 60 })

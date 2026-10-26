@@ -35,7 +35,7 @@ export default function Weight() {
   const body = useColl<BodyEntry>('body')
   const [range, setRange] = useState<'30' | '90' | 'all'>('90')
   const [weigh, setWeigh] = useState(false)
-  const [form, setForm] = useState<'measure' | 'bench' | null>(query.get('bench') ? 'bench' : null)
+  const [form, setForm] = useState<'measure' | 'bench' | null>(query.get('bench') ? 'bench' : query.get('measure') ? 'measure' : null)
   const today = dkey()
   const trend = useMemo(() => weightTrend(body), [body])
   const from = range === 'all' ? '0000' : addDays(today, -Number(range))

@@ -3,15 +3,18 @@ import { useState } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { toast } from '../../components/Toasts'
 import { Button, Card, Chips, Empty, Field, Page, Section } from '../../components/ui'
+import { PLAN_DAYS } from '../../data/program'
 import { useProfile } from '../../lib/app'
 import { addDays, diffDays, dkey, fmtLong } from '../../lib/date'
 import { renderMarkdown } from '../../lib/md'
+import { useRoute } from '../../lib/router'
 import { patch, put, useColl } from '../../lib/store'
 import type { Letter } from '../../lib/types'
 
 export default function Letters() {
   const letters = useColl<Letter>('letters').sort((a, b) => (a.openOn < b.openOn ? -1 : 1))
-  const [writing, setWriting] = useState(false)
+  const { query } = useRoute()
+  const [writing, setWriting] = useState(query.get('write') === '1')
   const [reading, setReading] = useState<Letter | null>(null)
   const today = dkey()
   const ready = letters.filter((l) => l.openOn <= today)
@@ -84,9 +87,10 @@ export default function Letters() {
 function Write({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile } = useProfile()
   const today = dkey()
+  const finish = addDays(profile.planStart, PLAN_DAYS - 1) // the challenge's last day
   const presets = [
     { value: addDays(today, 30), label: '1 month' },
-    { value: profile.milestoneDate ?? addDays(today, 120), label: 'End of the plan' },
+    finish > today ? { value: finish, label: 'Day 120' } : { value: addDays(today, 120), label: '4 months' },
     { value: addDays(today, 182), label: '6 months' },
     { value: addDays(today, 365), label: '1 year' },
   ]

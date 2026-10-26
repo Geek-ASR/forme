@@ -1,10 +1,11 @@
-// 17-week home program: four phases + a test week. Every day starts with 10 minutes of mobility.
+// The 120-day challenge: a home program in four phases over 17 weeks, then day 120 — the finish line.
+// Every day starts with 10 minutes of mobility.
 // Values are per phase: [Foundation, Build, Burn, Define].
 //
 // Two weekly templates: bodyweight-only, and dumbbells (upper/lower split, each muscle twice a week,
 // ~10+ hard sets per muscle per week, sets taken to 1–3 reps short of failure — see PRINCIPLES/SOURCES).
 
-import { diffDays, weekday } from '../lib/date'
+import { addDays, diffDays, weekday } from '../lib/date'
 import { EX } from './exercises'
 
 export type Phase = { n: 1 | 2 | 3 | 4; name: string; weeks: [number, number]; focus: string; steps: number; effort: string }
@@ -16,6 +17,7 @@ export const PHASES: Phase[] = [
   { n: 4, name: 'Define', weeks: [13, 17], focus: 'Hardest variations, slow tempo, then retest everything in week 17.', steps: 10000, effort: '0–2 reps left, hardest variations. Week 17: retest.' },
 ]
 export const PLAN_WEEKS = 17
+export const PLAN_DAYS = 120 // weeks 1–17 + the finish-line day (counted in week 17)
 export const BENCHMARK_WEEKS = [1, 5, 9, 13, 17]
 
 type Block = { ex: string | string[]; amt?: number[]; sets?: number[]; range?: [number, number]; rest?: number; tempo?: string }
@@ -268,16 +270,31 @@ export function programDay(planStart: string, date: string, dumbbells = false) {
   return {
     day: idx + 1,
     week: clampedWeek,
-    totalDays: PLAN_WEEKS * 7,
+    totalDays: PLAN_DAYS,
     phase: phaseObj,
     before: idx < 0,
-    after: idx >= PLAN_WEEKS * 7,
+    after: idx >= PLAN_DAYS,
     benchmark: BENCHMARK_WEEKS.includes(clampedWeek),
     sessions: (plan[weekday(date)] ?? ['rest']).map((id) => SESSIONS[id]),
   }
 }
 
 export const weekPlanFor = (dumbbells: boolean) => (dumbbells ? WEEK_PLAN_DB : WEEK_PLAN)
+
+/** Where today sits in the 120-day challenge. */
+export function challengeSpan(planStart: string, today: string) {
+  const dayNo = diffDays(today, planStart) + 1
+  return { start: planStart, finish: addDays(planStart, PLAN_DAYS - 1), dayNo, before: dayNo < 1, after: dayNo > PLAN_DAYS, left: PLAN_DAYS - Math.min(Math.max(dayNo, 0), PLAN_DAYS) }
+}
+
+/** Checkpoints of the challenge; each lines up with a retest week of the plan. */
+export const MILESTONES = [
+  { day: 1, title: 'Starting line', what: 'Weigh in, measure your waist, take the fitness test, and write to Day-120 you.' },
+  { day: 30, title: 'One month', what: 'Retest week — push-ups, plank, wall sit, chair stands. Compare with Day 1.' },
+  { day: 60, title: 'Halfway', what: 'Measure again and check the weight trend. Stalled for two weeks? Trim 100–150 kcal.' },
+  { day: 90, title: 'Three months', what: 'Retest week. The hardest variations start now.' },
+  { day: 120, title: 'Finish line', what: 'Final weigh-in, measurements and fitness test — then open your letter.' },
+]
 
 /** Weekly hard sets per muscle in the dumbbell template, by phase (shown in the plan). */
 export const DB_VOLUME = [

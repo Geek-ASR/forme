@@ -2,6 +2,7 @@ import { CloudCheck, Download, ExternalLink, GitCommitHorizontal, KeyRound, Lock
 import { useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/Toasts'
 import { Button, Card, Field, Page, Row, Section, Segmented } from '../../components/ui'
+import { saveSettings, useSettings } from '../../lib/app'
 import { disconnect, getConn, getToken, hasPin, lockNow, removePin, setPin, useAuthVersion } from '../../lib/auth'
 import { relTime } from '../../lib/date'
 import { GitHub } from '../../lib/github'
@@ -18,6 +19,7 @@ export default function Settings() {
   useAuthVersion()
   const conn = getConn()
   const sync = useSync()
+  const exp = useSettings().tokenExpires
   const [theme, setT] = useState<ThemePref>(getTheme())
   const [commits, setCommits] = useState<Commit[] | null>(null)
   const [pin, setPinText] = useState('')
@@ -77,6 +79,24 @@ export default function Settings() {
               {conn?.mode === 'github' ? 'Change token' : 'Connect GitHub'}
             </Button>
           </div>
+          {conn?.mode === 'github' && (
+            <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-[13.5px] font-semibold text-ink2">Token expires</div>
+                <div className="text-[12px] text-ink3">{exp === 'never' ? 'Never' : exp ? 'Forme warns you a week before' : 'Not set'}</div>
+              </div>
+              <input
+                type="date"
+                aria-label="Token expiry date"
+                value={exp && exp !== 'never' ? exp : ''}
+                onChange={(e) => saveSettings({ tokenExpires: e.target.value || undefined })}
+                className="field num w-[150px] py-1.5 text-[14px]"
+              />
+              <button onClick={() => saveSettings({ tokenExpires: 'never' })} aria-pressed={exp === 'never'} className="press text-[13px] font-semibold text-acc">
+                Never
+              </button>
+            </div>
+          )}
         </Card>
         {commits && commits.length > 0 && (
           <div className="mt-3 overflow-hidden rounded-3xl border border-line bg-card">

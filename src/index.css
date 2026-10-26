@@ -34,6 +34,7 @@
   --heat2: #5598e7;
   --heat3: #2a78d6;
   --heat4: #1c5cab;
+  --heat-on: #ffffff; /* text on heat3–4 */
   --mood1: #e34948;
   --mood2: #f19a99;
   --mood3: #b4b3ad;
@@ -77,6 +78,7 @@
     --heat2: #2a78d6;
     --heat3: #5598e7;
     --heat4: #86b6ef;
+    --heat-on: #0d1b2e;
     --mood1: #e66767;
     --mood2: #8a3434;
     --mood3: #5c5b57;
@@ -113,6 +115,7 @@
   --heat2: #2a78d6;
   --heat3: #5598e7;
   --heat4: #86b6ef;
+  --heat-on: #0d1b2e;
   --mood1: #e66767;
   --mood2: #8a3434;
   --mood3: #5c5b57;

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIn } from '../components/CheckIn'
 import { toast } from '../components/Toasts'
 import { Button, Card, Page, Section, cx } from '../components/ui'
-import { SESSIONS, programDay } from '../data/program'
+import { PLAN_DAYS, SESSIONS, challengeSpan, programDay } from '../data/program'
 import { NIGHT_LABEL, skinNight } from '../data/skincare'
 import { evaluateRoutine, patchDay, useDayData, type DayData } from '../lib/app'
 import { kfmt, streak } from '../lib/calc'
@@ -414,6 +414,7 @@ function Closed({ d, streakDays }: { d: DayData; streakDays: number }) {
   const tonight = NIGHT_LABEL[skinNight({ skinStart: d.profile.skinStart, date: d.date, irritated: d.day?.skinIrritated, products: d.settings.skincare.products })]
   const tomorrow = programDay(d.profile.planStart, addDays(d.date, 1), !!d.settings.training?.dumbbellKg).sessions.map((s) => s.name.split(' · ')[0]).join(' + ')
   const ate = d.totals.kcal > 0
+  const challenge = challengeSpan(d.profile.planStart, d.date)
   const rows: [string, string, boolean][] = [
     ['Protein', `${Math.round(d.totals.p)} / ${t.protein} g`, d.totals.p >= t.protein],
     ['Water', `${((d.day?.waterMl ?? 0) / 1000).toFixed(1)} / ${t.waterMl / 1000} L`, (d.day?.waterMl ?? 0) >= t.waterMl],
@@ -427,7 +428,10 @@ function Closed({ d, streakDays }: { d: DayData; streakDays: number }) {
           <Check size={32} strokeWidth={3} />
         </div>
         <div className="mt-3 text-[22px] font-bold">That's the day.</div>
-        <div className="text-[14px] text-ink3">{fmtDay(d.date)}</div>
+        <div className="text-[14px] text-ink3">
+          {fmtDay(d.date)}
+          {challenge.dayNo >= 1 && challenge.dayNo <= PLAN_DAYS ? ` · Day ${challenge.dayNo} of ${PLAN_DAYS}` : ''}
+        </div>
       </div>
 
       <Card className="mt-5">

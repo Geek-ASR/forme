@@ -57,6 +57,35 @@ if (!due.length) {
   process.exit(0)
 }
 
+// ── once a day, with the first reminder: 120-day-challenge milestones and a token-expiry warning ──
+const DAY = 86400000
+const daysBetween = (a, b) => Math.round((Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / DAY)
+const shift = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * DAY).toISOString().slice(0, 10)
+const challengeDay = profile.planStart ? daysBetween(date, profile.planStart) + 1 : 0
+const MILESTONES = {
+  1: ['Day 1 of 120', "Today: weigh in, measure your waist and take the fitness test — the numbers you'll beat on Day 120."],
+  30: ['Day 30 — one month in', 'Retest week: push-ups, plank, wall sit, chair stands. Compare with Day 1.'],
+  60: ['Day 60 — halfway', 'Measure again and look at your weight trend. Stalled two weeks? Trim 100–150 kcal.'],
+  90: ['Day 90 — three months', 'Retest week. The hardest variations start now.'],
+  120: ['Day 120 — the finish line 🏁', 'Final weigh-in and fitness test — then open your letter.'],
+}
+const firstToday = (settings.reminders ?? []).filter((r) => r.enabled && (r.days ?? []).includes(dow)).map((r) => r.time).sort()[0]
+if (!test && hm === firstToday) {
+  const m = MILESTONES[challengeDay]
+  if (m) due.push({ id: 'milestone', label: m[0], body: m[1], url: '#/challenge', kind: 'milestone' })
+  const exp = settings.tokenExpires
+  const left = exp && exp !== 'never' ? daysBetween(exp, date) : null
+  if (left !== null && left <= 5 && left >= -7) {
+    due.push({
+      id: 'token',
+      label: left < 0 ? 'Forme has stopped saving to GitHub' : `Your GitHub key expires ${left === 0 ? 'today' : `in ${left} day${left === 1 ? '' : 's'}`}`,
+      body: 'Make a new token with the same settings, then Settings → Change token. Nothing is lost.',
+      url: '#/me/settings',
+      kind: 'token',
+    })
+  }
+}
+
 // ── today's context ──
 const month = date.slice(0, 7)
 const day = read(`data/days/${month}.json`).find((r) => r.id === date) ?? {}
@@ -127,6 +156,21 @@ function personalise(r) {
           { action: 'w500', title: '+500 ml', op: { type: 'water', ml: 500 } },
         ],
       }
+    }
+    case 'weekly': {
+      // Sunday: the last seven days in one line, read straight from the repo.
+      const week = Array.from({ length: 7 }, (_, i) => shift(date, -i))
+      const months = [...new Set(week.map((d) => d.slice(0, 7)))]
+      const rows = (dir) => months.flatMap((m) => read(`data/${dir}/${m}.json`))
+      const wDays = rows('days').filter((x) => week.includes(x.id))
+      const wFood = rows('food').filter((x) => week.includes(x.date))
+      const wActs = rows('activity').filter((x) => week.includes(x.date))
+      const shown = week.filter((d) => wFood.some((f) => f.date === d) || wActs.some((a) => a.date === d) || wDays.some((x) => x.id === d && (x.mood || x.steps || x.waterMl || x.closedAt))).length
+      const workouts = wActs.filter((a) => a.kind !== 'mobility').length
+      const steps = wDays.map((x) => x.steps).filter(Boolean)
+      const avg = steps.length ? Math.round(steps.reduce((s, v) => s + v, 0) / steps.length) : 0
+      const lead = challengeDay >= 1 && challengeDay <= 120 ? `Day ${challengeDay} of 120. ` : ''
+      return { ...r, body: `${lead}Last 7 days: showed up ${shown}/7, ${workouts} workout${workouts === 1 ? '' : 's'}${avg ? `, ~${avg.toLocaleString('en-IN')} steps a day` : ''}. Weigh in, then a 2-minute look back.` }
     }
     case 'evening': {
       if (day.closedAt) return null

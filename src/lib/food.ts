@@ -270,3 +270,18 @@ export function sumEntries(entries: Pick<FoodEntry, 'kcal' | 'p' | 'c' | 'f' | '
     { kcal: 0, p: 0, c: 0, f: 0, fb: 0 },
   )
 }
+
+/**
+ * Protein to close today's gap: dense vegetarian picks (≥ 6 g a serving, ≥ 6 g per 100 kcal) that fit
+ * the calories left — foods you already eat first. Over budget, only the leanest (≥ 10 g per 100 kcal).
+ */
+export function proteinIdeas(foods: Food[], history: FoodEntry[], kcalLeft: number, n = 6): Food[] {
+  const eaten = new Map<string, number>()
+  for (const e of history) if (e.foodId) eaten.set(e.foodId, (eaten.get(e.foodId) ?? 0) + 1)
+  const lean = kcalLeft < 150
+  const familiar = (f: Food) => ((eaten.get(f.id) ?? 0) >= 2 ? 1 : 0)
+  return foods
+    .filter((f) => f.p >= 6 && f.p / f.kcal >= (lean ? 0.1 : 0.06) && f.kcal <= Math.max(kcalLeft, 150))
+    .sort((a, b) => familiar(b) - familiar(a) || b.p / b.kcal - a.p / a.kcal)
+    .slice(0, n)
+}

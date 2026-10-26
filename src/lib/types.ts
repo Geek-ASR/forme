@@ -77,6 +77,7 @@ export type Settings = Rec & {
   hybrid?: { nextIdea: number; books?: Partial<Record<HBook, string>> }
   ratingCats?: RatingCat[]
   training?: { dumbbellKg?: number; dumbbells?: number }
+  tokenExpires?: string // 'YYYY-MM-DD' or 'never' — when the GitHub token stops working (warned 7 days ahead)
 }
 
 export type Day = Rec & {

@@ -14,7 +14,7 @@ import type { BodyEntry, FoodEntry } from '../../lib/types'
 
 const TILES = [
   { href: '#/body/food', label: 'Food log', sub: 'Indian dishes, by voice or text', Icon: Utensils },
-  { href: '#/body/plan', label: 'Workout plan', sub: '17 weeks, home, low-impact', Icon: Dumbbell },
+  { href: '#/body/plan', label: 'Workout plan', sub: '120-day challenge, home, low-impact', Icon: Dumbbell },
   { href: '#/body/move', label: 'Steps & activity', sub: 'Walks, sports, burn', Icon: Activity },
   { href: '#/body/weight', label: 'Weight & body', sub: 'Trend, measurements, tests', Icon: Scale },
   { href: '#/body/spine', label: 'Spine care', sub: 'Pain, stiffness, BASDAI, meds', Icon: HeartPulse },

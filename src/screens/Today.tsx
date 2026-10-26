@@ -1,27 +1,30 @@
-import { Check, ChevronDown, ChevronRight, Droplet, Footprints, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Droplet, Footprints, KeyRound, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { MacroBar, moodEmoji } from '../components/charts'
 import { CheckIn } from '../components/CheckIn'
 import { RoutineIcon } from '../components/icons'
 import { NumberSheet } from '../components/NumberSheet'
 import { PhoneSetup } from '../components/PhoneSetup'
+import { ProteinIdeas } from '../components/ProteinIdeas'
 import { QuickAdd } from '../components/QuickAdd'
 import { SyncBadge } from '../components/SyncBadge'
 import { toast } from '../components/Toasts'
 import { Bar, Button, Card, Fab, Page, Pill, Ring, Section, cx } from '../components/ui'
 import { wordOfDay } from '../data/german'
 import { promptOfDay } from '../data/prompts'
-import { SESSIONS, sessionMinutes } from '../data/program'
+import { SESSIONS, challengeSpan, sessionMinutes } from '../data/program'
 import { NIGHT_LABEL, skinNight } from '../data/skincare'
-import { addWater, evaluateRoutine, focusItems, patchDay, setCheck, useDayData, useWeightNow, type DayData, type ItemStatus } from '../lib/app'
+import { addWater, evaluateRoutine, focusItems, patchDay, saveSettings, setCheck, useDayData, useWeightNow, type DayData, type ItemStatus } from '../lib/app'
+import { getConn } from '../lib/auth'
 import { kfmt, streak } from '../lib/calc'
-import { diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekday } from '../lib/date'
+import { addDays, diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekday } from '../lib/date'
 import { useActiveDays } from '../lib/insights'
 import { excerpt } from '../lib/md'
 import { go } from '../lib/router'
 import { speak } from '../lib/speech'
-import { useColl } from '../lib/store'
-import type { Letter, Post, SrsState } from '../lib/types'
+import { TOKEN_HELP_URL } from '../lib/config'
+import { patch, useColl } from '../lib/store'
+import type { BodyEntry, Letter, Post, SrsState } from '../lib/types'
 import { ART_COLOR } from '../lib/srs'
 
 const ROUTINE_OPEN = 'forme.today.routineOpen'
@@ -58,12 +61,13 @@ export default function Today() {
   const date = dkey()
   const d = useDayData(date)
   const [add, setAdd] = useState(false)
-  const [sheet, setSheet] = useState<'steps' | 'sleep' | null>(null)
+  const [sheet, setSheet] = useState<'steps' | 'sleep' | 'weight' | 'protein' | null>(null)
   const [routineOpen, setRoutineOpen] = useState(() => lsGet(ROUTINE_OPEN) === '1')
   const kgNow = useWeightNow()
   const posts = useColl<Post>('posts')
   const letters = useColl<Letter>('letters')
   const srs = useColl<SrsState>('srs')
+  const body = useColl<BodyEntry>('body')
   const active = useActiveDays()
   const nowMin = useNowMin()
   const routine = evaluateRoutine(d)
@@ -92,6 +96,25 @@ export default function Today() {
   const away = !active.has(date) && lastActive ? diffDays(date, lastActive) : 0
   const [welcomeHidden, setWelcomeHidden] = useState(() => lsGet('forme.welcome') === date)
 
+  // The 120-day challenge: a starting-line checklist for the first week (numbers to compare on Day 120).
+  const c = challengeSpan(d.profile.planStart, date)
+  const since = addDays(c.start, -3)
+  const after = (b: BodyEntry) => b.date >= since
+  const baseline = [
+    { id: 'weigh', label: 'Weigh in', sub: 'morning, after the bathroom', done: body.some((b) => after(b) && !!b.kg), run: () => setSheet('weight') },
+    { id: 'waist', label: 'Measure your waist', sub: 'at the navel, relaxed', done: body.some((b) => after(b) && !!b.waist), run: () => go('/body/weight?measure=1') },
+    { id: 'fit', label: 'Fitness test', sub: 'push-ups, plank, wall sit, chair stands', done: body.some((b) => after(b) && (b.pushups ?? b.plank ?? b.wallSit ?? b.chairStand) !== undefined), run: () => go('/body/weight?bench=1') },
+    { id: 'letter', label: 'Write to Day-120 you', sub: `sealed until ${fmtLong(c.finish)}`, done: letters.some((l) => l.openOn === c.finish), run: () => go('/me/letters?write=1') },
+  ]
+  const showBaseline = !c.before && c.dayNo <= 7 && baseline.some((b) => !b.done)
+
+  // The GitHub token expires on a date only the person knows (browsers can't read it): ask once, warn a week ahead.
+  const github = getConn()?.mode === 'github'
+  const exp = d.settings.tokenExpires
+  const expIn = exp && exp !== 'never' ? diffDays(exp, date) : null
+  const [askLater, setAskLater] = useState(() => Number(lsGet('forme.askExpiry') ?? 0) > Date.now())
+  const [expInput, setExpInput] = useState('')
+
   return (
     <Page
       accent="today"
@@ -99,21 +122,100 @@ export default function Today() {
       title={`${greeting()}${name ? `, ${name}` : ''}`}
       actions={<SyncBadge />}
     >
-      {!d.program.before && !d.program.after && (
-        <div className="mt-1 px-1">
-          <div className="flex items-center justify-between text-[13px] text-ink3">
-            <span>
-              Day <b className="text-ink">{d.program.day}</b> of {d.program.totalDays} · Week {d.program.week} · {d.program.phase.name}
-            </span>
-            <a href="#/body/plan" className="font-semibold text-acc">
-              Plan
-            </a>
-          </div>
-          <Bar className="mt-2" value={d.program.day} max={d.program.totalDays} height={5} />
+      <a href="#/challenge" className="press mt-1 block px-1">
+        <div className="flex items-center justify-between gap-3 text-[13px] text-ink3">
+          <span className="min-w-0 truncate">
+            {c.before ? (
+              <>
+                120-day challenge starts <b className="text-ink">{fmtDay(c.start)}</b>
+              </>
+            ) : c.after ? (
+              <>
+                120-day challenge <b className="text-ink">complete</b> 🎉
+              </>
+            ) : (
+              <>
+                Day <b className="text-ink">{c.dayNo}</b> of 120 · Week {d.program.week} · {d.program.phase.name}
+              </>
+            )}
+          </span>
+          <span className="shrink-0 font-semibold text-acc">Challenge</span>
         </div>
-      )}
+        <Bar className="mt-2" value={c.before ? 0 : Math.min(c.dayNo, 120)} max={120} height={5} />
+      </a>
 
       <PhoneSetup />
+
+      {github && !exp && !askLater && (
+        <Card className="mt-4">
+          <div className="flex items-center gap-2 text-[15px] font-semibold">
+            <KeyRound size={17} className="text-acc" /> When does your GitHub key expire?
+          </div>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-ink3">
+            Forme saves to GitHub with the token you pasted. When it expires, saving stops — tell Forme the date and it warns you a week before. It's on your{' '}
+            <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer" className="font-semibold text-acc">
+              GitHub tokens page
+            </a>
+            .
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input type="date" aria-label="Token expiry date" value={expInput} onChange={(e) => setExpInput(e.target.value)} className="field num w-[160px] py-2 text-[15px]" />
+            <Button size="sm" disabled={!expInput} onClick={() => saveSettings({ tokenExpires: expInput })}>
+              Save
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => saveSettings({ tokenExpires: 'never' })}>
+              It never expires
+            </Button>
+          </div>
+          <button
+            className="press mt-2 text-[12.5px] font-semibold text-ink3"
+            onClick={() => {
+              lsSet('forme.askExpiry', String(Date.now() + 3 * 86400000))
+              setAskLater(true)
+            }}
+          >
+            Ask me later
+          </button>
+        </Card>
+      )}
+
+      {github && expIn !== null && expIn <= 7 && (
+        <Card className="mt-4 border-bad/40">
+          <div className="text-[15px] font-semibold text-bad">{expIn < 0 ? 'Your GitHub key has expired' : expIn === 0 ? 'Your GitHub key expires today' : `Your GitHub key expires in ${expIn} day${expIn === 1 ? '' : 's'}`}</div>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-ink2">
+            Make a new token with the same settings, then <b>Settings → Change token</b> and paste it. Nothing is lost — {expIn < 0 ? 'your logs wait on this phone until then' : 'this just keeps saving uninterrupted'}.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a href={TOKEN_HELP_URL} target="_blank" rel="noreferrer" className="press inline-flex h-9 items-center rounded-2xl bg-acc-fill px-3 text-[14px] font-semibold text-acc-on">
+              Make a new token
+            </a>
+            <Button size="sm" variant="outline" onClick={() => go('/me/settings')}>
+              Settings
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {showBaseline && (
+        <Card className="mt-4">
+          <div className="text-[15.5px] font-semibold">Your starting line</div>
+          <div className="mt-0.5 text-[13px] text-ink3">Day-1 numbers are what make Day 120 mean something. All of this takes about 10 minutes.</div>
+          <div className="mt-3 space-y-1">
+            {baseline.map((b) => (
+              <button key={b.id} disabled={b.done} onClick={b.run} className="press flex w-full items-center gap-3 rounded-2xl px-1 py-1.5 text-left">
+                <span className={cx('flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2', b.done ? 'border-transparent bg-acc-fill text-acc-on' : 'border-line2 text-transparent')}>
+                  <Check size={15} strokeWidth={3} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cx('block text-[15px] font-medium', b.done && 'text-ink3 line-through decoration-1')}>{b.label}</span>
+                  <span className="block truncate text-[12.5px] text-ink3">{b.sub}</span>
+                </span>
+                {!b.done && <ChevronRight size={17} className="shrink-0 text-ink3" />}
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {away >= 2 && !welcomeHidden && (
         <Card className="mt-4">
@@ -147,7 +249,7 @@ export default function Today() {
         </Card>
       )}
 
-      <NextUp d={d} routine={routine} nowMin={nowMin} streakDays={streak(active, date)} />
+      <NextUp d={d} routine={routine} nowMin={nowMin} streakDays={streak(active, date)} onProtein={() => setSheet('protein')} />
 
       {d.profileMissing && (
         <Card className="mt-4 border-acc/40" href="#/me/profile">
@@ -212,7 +314,16 @@ export default function Today() {
           <b className={d.totals.p >= t.protein ? 'text-good' : 'text-ink2'}>
             {Math.round(d.totals.p)}/{t.protein} g
           </b>
-          .
+          {d.totals.p < t.protein ? (
+            <>
+              {' · '}
+              <button onClick={() => setSheet('protein')} className="font-semibold text-acc">
+                protein ideas
+              </button>
+            </>
+          ) : (
+            '.'
+          )}
         </div>
       </Card>
 
@@ -446,6 +557,20 @@ export default function Today() {
         onSave={(v) => patchDay(date, { steps: v })}
       />
       <NumberSheet
+        open={sheet === 'weight'}
+        onClose={() => setSheet(null)}
+        title="Weigh-in"
+        unit="kg"
+        decimals={1}
+        accent="body"
+        hint="Best: mornings, after the bathroom, before eating."
+        onSave={(v) => {
+          patch<BodyEntry>('body', `b-${date}`, { date, kg: v })
+          toast(`Weight saved: ${v} kg`)
+        }}
+      />
+      <ProteinIdeas open={sheet === 'protein'} onClose={() => setSheet(null)} date={date} gap={t.protein - d.totals.p} kcalLeft={t.kcal - d.totals.kcal} />
+      <NumberSheet
         open={sheet === 'sleep'}
         onClose={() => setSheet(null)}
         title="Sleep last night"
@@ -460,7 +585,7 @@ export default function Today() {
 }
 
 /** The three things worth doing now (see focusItems), with one-tap done / +250 ml. */
-function NextUp({ d, routine, nowMin, streakDays }: { d: DayData; routine: ItemStatus[]; nowMin: number; streakDays: number }) {
+function NextUp({ d, routine, nowMin, streakDays, onProtein }: { d: DayData; routine: ItemStatus[]; nowMin: number; streakDays: number; onProtein: () => void }) {
   const { now, next } = focusItems(d, routine, nowMin)
   const closed = !!d.day?.closedAt
   return (
@@ -485,7 +610,7 @@ function NextUp({ d, routine, nowMin, streakDays }: { d: DayData; routine: ItemS
                   <RoutineIcon name={f.icon} size={17} />
                 </span>
               )}
-              <button className="min-w-0 flex-1 text-left" disabled={!f.href} onClick={() => f.href && go(f.href.replace(/^#/, ''))}>
+              <button className="min-w-0 flex-1 text-left" disabled={!f.href && !f.protein} onClick={() => (f.protein ? onProtein() : f.href && go(f.href.replace(/^#/, '')))}>
                 <div className="truncate text-[15.5px] font-semibold">{f.label}</div>
                 {f.detail && <div className="truncate text-[12.5px] text-ink3">{f.detail}</div>}
               </button>
@@ -500,7 +625,7 @@ function NextUp({ d, routine, nowMin, streakDays }: { d: DayData; routine: ItemS
                   +250 ml
                 </button>
               ) : (
-                f.href && <ChevronRight size={18} className="shrink-0 text-ink3" />
+                (f.href || f.protein) && <ChevronRight size={18} className="shrink-0 text-ink3" />
               )}
             </div>
           ))}
