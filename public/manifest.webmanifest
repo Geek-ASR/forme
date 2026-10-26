@@ -17,7 +17,13 @@
   ],
   "shortcuts": [
     { "name": "Log food", "url": "./#/body/food/add", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Write a thought", "url": "./#/mind/new?type=thought", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "German review", "url": "./#/deutsch/review", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
-  ]
+    { "name": "Water +250 ml", "short_name": "+250 ml water", "url": "./#/log?water=250", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Close the day", "url": "./#/evening", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Write a thought", "url": "./#/mind/new?type=thought", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": { "title": "share_title", "text": "share_text", "url": "share_url" }
+  }
 }

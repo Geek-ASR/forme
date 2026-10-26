@@ -23,7 +23,7 @@ export default function AddFood() {
   const foods = useMemo(() => foodList(custom), [custom])
   const entries = useColl<FoodEntry>('food')
   const templates = useColl<MealTemplate>('meals')
-  const [text, setText] = useState('')
+  const [text, setText] = useState(query.get('text') ?? '') // shared or typed in the evening check-in
   const [manual, setManual] = useState<Pick[]>([])
   const [overrides, setOverrides] = useState<Record<string, { foodId?: string; mult?: number; removed?: boolean }>>({})
   const [listening, setListening] = useState(false)

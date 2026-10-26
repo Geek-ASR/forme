@@ -1,9 +1,10 @@
-import { Check, ChevronRight, Droplet, Footprints, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Check, ChevronDown, ChevronRight, Droplet, Footprints, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { MacroBar, moodEmoji } from '../components/charts'
 import { CheckIn } from '../components/CheckIn'
 import { RoutineIcon } from '../components/icons'
 import { NumberSheet } from '../components/NumberSheet'
+import { PhoneSetup } from '../components/PhoneSetup'
 import { QuickAdd } from '../components/QuickAdd'
 import { SyncBadge } from '../components/SyncBadge'
 import { toast } from '../components/Toasts'
@@ -12,9 +13,10 @@ import { wordOfDay } from '../data/german'
 import { promptOfDay } from '../data/prompts'
 import { SESSIONS, sessionMinutes } from '../data/program'
 import { NIGHT_LABEL, skinNight } from '../data/skincare'
-import { addWater, evaluateRoutine, patchDay, setCheck, useDayData, useWeightNow } from '../lib/app'
-import { kfmt } from '../lib/calc'
+import { addWater, evaluateRoutine, focusItems, patchDay, setCheck, useDayData, useWeightNow, type DayData, type ItemStatus } from '../lib/app'
+import { kfmt, streak } from '../lib/calc'
 import { diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekday } from '../lib/date'
+import { useActiveDays } from '../lib/insights'
 import { excerpt } from '../lib/md'
 import { go } from '../lib/router'
 import { speak } from '../lib/speech'
@@ -22,15 +24,48 @@ import { useColl } from '../lib/store'
 import type { Letter, Post, SrsState } from '../lib/types'
 import { ART_COLOR } from '../lib/srs'
 
+const ROUTINE_OPEN = 'forme.today.routineOpen'
+const lsGet = (k: string) => {
+  try {
+    return localStorage.getItem(k)
+  } catch {
+    return null
+  }
+}
+const lsSet = (k: string, v: string) => {
+  try {
+    localStorage.setItem(k, v)
+  } catch {
+    /* private mode */
+  }
+}
+
+/** Minutes since midnight, refreshed every minute so "Next up" moves with the day. */
+function useNowMin() {
+  const read = () => {
+    const n = new Date()
+    return n.getHours() * 60 + n.getMinutes()
+  }
+  const [m, setM] = useState(read)
+  useEffect(() => {
+    const t = setInterval(() => setM(read()), 60_000)
+    return () => clearInterval(t)
+  }, [])
+  return m
+}
+
 export default function Today() {
   const date = dkey()
   const d = useDayData(date)
   const [add, setAdd] = useState(false)
   const [sheet, setSheet] = useState<'steps' | 'sleep' | null>(null)
+  const [routineOpen, setRoutineOpen] = useState(() => lsGet(ROUTINE_OPEN) === '1')
   const kgNow = useWeightNow()
   const posts = useColl<Post>('posts')
   const letters = useColl<Letter>('letters')
   const srs = useColl<SrsState>('srs')
+  const active = useActiveDays()
+  const nowMin = useNowMin()
   const routine = evaluateRoutine(d)
   const doneCount = routine.filter((r) => r.done).length
   const t = d.settings.targets
@@ -52,6 +87,11 @@ export default function Today() {
   const letterReady = letters.find((l) => !l.opened && l.openOn <= date)
   const name = d.profile.name?.split(' ')[0]
 
+  // Back after a break? Last day with anything logged, if it was 2+ days ago and today is still empty.
+  const lastActive = useMemo(() => [...active].filter((k) => k < date).sort().pop(), [active, date])
+  const away = !active.has(date) && lastActive ? diffDays(date, lastActive) : 0
+  const [welcomeHidden, setWelcomeHidden] = useState(() => lsGet('forme.welcome') === date)
+
   return (
     <Page
       accent="today"
@@ -72,6 +112,42 @@ export default function Today() {
           <Bar className="mt-2" value={d.program.day} max={d.program.totalDays} height={5} />
         </div>
       )}
+
+      <PhoneSetup />
+
+      {away >= 2 && !welcomeHidden && (
+        <Card className="mt-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-[16px] font-semibold">Welcome back{name ? `, ${name}` : ''} 👋</div>
+            <button
+              aria-label="Hide"
+              className="press -mr-1.5 -mt-1 p-1.5 text-ink3"
+              onClick={() => {
+                lsSet('forme.welcome', date)
+                setWelcomeHidden(true)
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <p className="mt-1 text-[14px] leading-relaxed text-ink2">
+            {away - 1 === 1 ? 'One day off' : `${away - 1} days off`} — no catch-up needed, nothing to fill in. Today starts fresh. Pick one small thing:
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <Button variant="soft" size="sm" onClick={() => document.getElementById('checkin')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+              Check in
+            </Button>
+            <Button variant="soft" size="sm" onClick={() => go('/body/food/add')}>
+              Log a meal
+            </Button>
+            <Button variant="soft" size="sm" onClick={() => go('/body/workout/mobility')}>
+              Mobility
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <NextUp d={d} routine={routine} nowMin={nowMin} streakDays={streak(active, date)} />
 
       {d.profileMissing && (
         <Card className="mt-4 border-acc/40" href="#/me/profile">
@@ -198,7 +274,7 @@ export default function Today() {
       </div>
 
       {/* Check-in */}
-      <div className="mt-3">
+      <div className="mt-3 scroll-mt-24" id="checkin">
         <CheckIn date={date} day={d.day} compact />
       </div>
       {(d.day?.pain ?? 0) >= 7 && !flare && (
@@ -250,34 +326,51 @@ export default function Today() {
         </div>
       </Section>
 
-      {/* Routine */}
-      <Section title="Routine" action={<span className="text-[13px] font-semibold text-ink3">{doneCount}/{routine.length}</span>}>
-        <div className="overflow-hidden rounded-3xl border border-line bg-card">
-          {routine.map(({ item, done, auto, detail }) => (
-            <div key={item.id} className="flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-b-0">
-              <button
-                aria-label={done ? `Mark ${item.label} not done` : `Mark ${item.label} done`}
-                aria-pressed={done}
-                onClick={() => setCheck(date, item.id, !done)}
-                className={cx('press flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2', done ? 'border-transparent bg-acc-fill text-acc-on' : 'border-line2 text-transparent')}
-              >
-                <Check size={16} strokeWidth={3} />
-              </button>
-              <button className="min-w-0 flex-1 text-left" onClick={() => item.link && go(item.link.replace(/^#/, ''))}>
-                <div className={cx('flex items-center gap-1.5 text-[15px] font-medium', done && 'text-ink3 line-through decoration-1')}>
-                  <span className="text-ink3">
-                    <RoutineIcon name={item.icon} size={15} />
-                  </span>
-                  <span className="truncate">{item.label}</span>
-                </div>
-                <div className="text-[12.5px] text-ink3">
-                  {[item.time && fmtTime(item.time), detail, auto && done ? 'auto' : ''].filter(Boolean).join(' · ')}
-                </div>
-              </button>
+      {/* Routine — folded into one line; "Next up" already surfaces what matters now */}
+      <Section title="Routine">
+        <button
+          aria-expanded={routineOpen}
+          onClick={() => {
+            lsSet(ROUTINE_OPEN, routineOpen ? '0' : '1')
+            setRoutineOpen(!routineOpen)
+          }}
+          className={cx('press flex w-full items-center gap-3 border border-line bg-card px-4 py-3 text-left', routineOpen ? 'rounded-t-3xl border-b-0' : 'rounded-3xl')}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-semibold">
+              {doneCount} of {routine.length} done
             </div>
-          ))}
-        </div>
-        <Bar className="mt-3" value={doneCount} max={routine.length} height={6} />
+            <Bar className="mt-2" value={doneCount} max={routine.length} height={5} />
+          </div>
+          <ChevronDown size={18} className={cx('shrink-0 text-ink3 transition-transform', routineOpen && 'rotate-180')} />
+        </button>
+        {routineOpen && (
+          <div className="overflow-hidden rounded-b-3xl border border-line bg-card">
+            {routine.map(({ item, done, auto, detail }) => (
+              <div key={item.id} className="flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-b-0">
+                <button
+                  aria-label={done ? `Mark ${item.label} not done` : `Mark ${item.label} done`}
+                  aria-pressed={done}
+                  onClick={() => setCheck(date, item.id, !done)}
+                  className={cx('press flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2', done ? 'border-transparent bg-acc-fill text-acc-on' : 'border-line2 text-transparent')}
+                >
+                  <Check size={16} strokeWidth={3} />
+                </button>
+                <button className="min-w-0 flex-1 text-left" onClick={() => item.link && go(item.link.replace(/^#/, ''))}>
+                  <div className={cx('flex items-center gap-1.5 text-[15px] font-medium', done && 'text-ink3 line-through decoration-1')}>
+                    <span className="text-ink3">
+                      <RoutineIcon name={item.icon} size={15} />
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  <div className="text-[12.5px] text-ink3">
+                    {[item.time && fmtTime(item.time), detail, auto && done ? 'auto' : ''].filter(Boolean).join(' · ')}
+                  </div>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </Section>
 
       {/* German */}
@@ -363,5 +456,70 @@ export default function Today() {
         onSave={(v) => patchDay(date, { sleepH: v })}
       />
     </Page>
+  )
+}
+
+/** The three things worth doing now (see focusItems), with one-tap done / +250 ml. */
+function NextUp({ d, routine, nowMin, streakDays }: { d: DayData; routine: ItemStatus[]; nowMin: number; streakDays: number }) {
+  const { now, next } = focusItems(d, routine, nowMin)
+  const closed = !!d.day?.closedAt
+  return (
+    <Section title="Next up" action={streakDays >= 2 ? <span className="text-[13px] font-semibold text-ink3">🔥 {streakDays} days</span> : undefined}>
+      {now.length ? (
+        <div className="overflow-hidden rounded-3xl border border-line bg-card">
+          {now.map((f) => (
+            <div key={f.id} className={cx('flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0', f.id === 'close' && 'bg-acc-soft')}>
+              {f.check ? (
+                <button
+                  aria-label={`Mark ${f.label} done`}
+                  onClick={() => {
+                    setCheck(d.date, f.check!, true)
+                    toast(`${f.label} ✓`, { label: 'Undo', run: () => setCheck(d.date, f.check!, false) })
+                  }}
+                  className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-line2 text-transparent hover:text-ink3"
+                >
+                  <Check size={17} strokeWidth={3} />
+                </button>
+              ) : (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-acc-soft text-acc">
+                  <RoutineIcon name={f.icon} size={17} />
+                </span>
+              )}
+              <button className="min-w-0 flex-1 text-left" disabled={!f.href} onClick={() => f.href && go(f.href.replace(/^#/, ''))}>
+                <div className="truncate text-[15.5px] font-semibold">{f.label}</div>
+                {f.detail && <div className="truncate text-[12.5px] text-ink3">{f.detail}</div>}
+              </button>
+              {f.water ? (
+                <button
+                  onClick={() => {
+                    addWater(d.date, 250)
+                    toast('+250 ml', { label: 'Undo', run: () => addWater(d.date, -250) })
+                  }}
+                  className="press h-9 shrink-0 rounded-xl bg-acc-soft px-3 text-[13.5px] font-semibold text-acc"
+                >
+                  +250 ml
+                </button>
+              ) : (
+                f.href && <ChevronRight size={18} className="shrink-0 text-ink3" />
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <div className="text-[15px] font-semibold">{closed ? 'Day closed — sleep well 🌙' : 'Nothing pressing right now ✓'}</div>
+          {next && !closed && (
+            <div className="mt-0.5 text-[13px] text-ink3">
+              Next: {next.label} at {fmtTime(routine.find((r) => r.item.id === next.id)?.item.time)}
+            </div>
+          )}
+          {closed && (
+            <a href="#/evening" className="mt-0.5 block text-[13px] font-semibold text-acc">
+              Review today
+            </a>
+          )}
+        </Card>
+      )}
+    </Section>
   )
 }

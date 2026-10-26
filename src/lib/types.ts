@@ -94,6 +94,8 @@ export type Day = Rec & {
   skinFeel?: 'oily' | 'balanced' | 'tight' | 'irritated'
   skinBreakouts?: 0 | 1 | 2
   note?: string
+  skipped?: Meal[] // meals deliberately not eaten — they count as logged
+  closedAt?: number // evening check-in finished
 }
 
 export type FoodEntry = Rec & {

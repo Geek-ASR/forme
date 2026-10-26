@@ -3,8 +3,12 @@
 // whenever reminder times change. Cron runs in UTC, so every local time is converted for both
 // standard and daylight-saving offsets of your timezone; the sender script keeps only the match.
 
+import { useEffect, useState } from 'react'
+import { getConn, getToken } from './auth'
 import { VAPID_PUBLIC_KEY } from './config'
+import { GitHub, GitHubError } from './github'
 import { put, setRaw } from './store'
+import { syncNow } from './sync'
 import type { PushSub, Reminder } from './types'
 
 export const WORKFLOW_PATH = '.github/workflows/reminders.yml'
@@ -56,12 +60,83 @@ export async function enablePush(): Promise<string> {
   const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
   const id = await subId(json.endpoint)
   put<PushSub>('push', { id, endpoint: json.endpoint, keys: json.keys, device: deviceName(), createdAt: Date.now() })
+  window.dispatchEvent(new Event('forme:subscribed'))
   return id
 }
 
 export async function disablePush(): Promise<void> {
   const sub = await currentSubscription()
   if (sub) await sub.unsubscribe()
+}
+
+export const notificationsBlocked = () => pushSupported() && Notification.permission === 'denied'
+
+/** The endpoint of this device's subscription, once it is also saved in the repo (null = not set up). */
+export function useThisDevice(subs: PushSub[]): PushSub | null | undefined {
+  const [endpoint, setEndpoint] = useState<string | null | undefined>(undefined)
+  useEffect(() => {
+    let alive = true
+    const check = () => currentSubscription().then((s) => alive && setEndpoint(s?.endpoint ?? null))
+    check()
+    window.addEventListener('forme:subscribed', check)
+    return () => {
+      alive = false
+      window.removeEventListener('forme:subscribed', check)
+    }
+  }, [])
+  if (endpoint === undefined) return undefined
+  return (endpoint && subs.find((s) => s.endpoint === endpoint)) || null
+}
+
+// The service worker notes the last notification it showed on this device (Cache Storage),
+// so the app can tell "reminders reach this phone" apart from "reminders were sent".
+export type PushLog = { at: number; tag?: string; title?: string }
+const PUSH_LOG = '__forme/last-push'
+
+export async function lastPush(): Promise<PushLog | null> {
+  try {
+    const c = await caches.open('forme-runtime')
+    const r = await c.match(new URL(PUSH_LOG, location.origin + location.pathname).href)
+    return r ? ((await r.json()) as PushLog) : null
+  } catch {
+    return null
+  }
+}
+
+export function useLastPush(): PushLog | null | undefined {
+  const [log, setLog] = useState<PushLog | null | undefined>(undefined)
+  useEffect(() => {
+    let alive = true
+    const read = () => lastPush().then((l) => alive && setLog(l))
+    read()
+    window.addEventListener('forme:push', read)
+    return () => {
+      alive = false
+      window.removeEventListener('forme:push', read)
+    }
+  }, [])
+  return log
+}
+
+/** Runs the reminders workflow in test mode. Saves first: the Action only knows devices already in the repo. */
+export async function sendTestPush(): Promise<'sent' | 'no-permission'> {
+  const conn = getConn()
+  const token = getToken()
+  if (!conn || conn.mode !== 'github' || !token) throw new Error('Connect GitHub first')
+  await syncNow()
+  try {
+    await new GitHub(conn.owner, conn.repo, conn.branch, token).dispatchWorkflow('reminders.yml', { test: 'true' })
+    return 'sent'
+  } catch (e) {
+    if (e instanceof GitHubError && (e.status === 403 || e.status === 404)) return 'no-permission'
+    throw e
+  }
+}
+
+/** Where to run the test by hand when the token can't (no Actions permission). */
+export function workflowPage(): string {
+  const conn = getConn()
+  return conn ? `https://github.com/${conn.owner}/${conn.repo}/actions/workflows/reminders.yml` : 'https://github.com'
 }
 
 // ── timezone maths ──

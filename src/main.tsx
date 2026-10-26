@@ -1,3 +1,4 @@
+import './lib/install' // first: Chrome's install prompt can fire before the app renders
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -21,6 +22,9 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       const hash = e.data.url.includes('#') ? e.data.url.slice(e.data.url.indexOf('#')) : '#/'
       location.hash = hash
     }
+    // a notification arrived / a notification button logged something
+    if (e.data?.type === 'push') window.dispatchEvent(new Event('forme:push'))
+    if (e.data?.type === 'inbox') window.dispatchEvent(new Event('forme:inbox'))
   })
 }
 

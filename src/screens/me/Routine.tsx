@@ -1,19 +1,27 @@
-import { ArrowDown, ArrowUp, BellRing, CalendarPlus, Plus, Send, Share, Trash, TriangleAlert } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ArrowDown, ArrowUp, BellRing, CalendarPlus, Copy, Plus, Send, Share, Trash, TriangleAlert } from 'lucide-react'
+import { useState } from 'react'
 import { RoutineIcon, ROUTINE_ICONS } from '../../components/icons'
 import { toast } from '../../components/Toasts'
 import { Button, Card, Page, Section, Toggle, cx } from '../../components/ui'
 import { saveSettings, useProfile, useSettings } from '../../lib/app'
-import { getConn, getToken } from '../../lib/auth'
-import { fmtTime } from '../../lib/date'
-import { GitHub, GitHubError } from '../../lib/github'
+import { getConn } from '../../lib/auth'
+import { fmtTime, relTime } from '../../lib/date'
 import { buildIcs, downloadFile } from '../../lib/ics'
-import { currentSubscription, enablePush, isIOS, isStandalone, pushSupported, queueWorkflow } from '../../lib/push'
+import { platform } from '../../lib/install'
+import { enablePush, isIOS, isStandalone, pushSupported, queueWorkflow, sendTestPush, useLastPush, useThisDevice } from '../../lib/push'
 import { newId, useColl } from '../../lib/store'
 import { retryWorkflow, useSync } from '../../lib/sync'
 import type { PushSub, Reminder, RoutineItem } from '../../lib/types'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+// Quick-log links (see screens/QuickLog.tsx) — for home-screen shortcuts and automation apps.
+const LINKS = [
+  { label: 'Steps', path: 'log?steps=8000', note: 'Tasker: put %steps from Health Connect in place of 8000' },
+  { label: 'Water', path: 'log?water=250' },
+  { label: 'Weight', path: 'log?kg=70.5' },
+  { label: 'Close the day', path: 'evening' },
+]
 
 export default function Routine() {
   const settings = useSettings()
@@ -23,14 +31,11 @@ export default function Routine() {
   const [items, setItems] = useState<RoutineItem[]>(settings.routine)
   const [rems, setRems] = useState<Reminder[]>(settings.reminders)
   const [dirty, setDirty] = useState(false)
-  const [sub, setSub] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const conn = getConn()
-
-  useEffect(() => {
-    currentSubscription().then((s) => setSub(s?.endpoint ?? null))
-  }, [])
-  const thisDevice = sub ? subs.find((s) => s.endpoint === sub) : undefined
+  const thisDevice = useThisDevice(subs)
+  const last = useLastPush()
+  const base = location.origin + location.pathname + '#/'
 
   const editItem = (i: number, p: Partial<RoutineItem>) => {
     setItems(items.map((x, j) => (j === i ? { ...x, ...p } : x)))
@@ -60,8 +65,6 @@ export default function Routine() {
     setBusy(true)
     try {
       await enablePush()
-      const s = await currentSubscription()
-      setSub(s?.endpoint ?? null)
       if (conn?.mode === 'github') queueWorkflow(rems, profile.timezone)
       toast('Notifications enabled on this device 🔔')
     } catch (e) {
@@ -72,15 +75,20 @@ export default function Routine() {
   }
 
   async function test() {
-    const token = getToken()
-    if (!conn || conn.mode !== 'github' || !token) return toast('Connect GitHub first')
     try {
-      await new GitHub(conn.owner, conn.repo, conn.branch, token).dispatchWorkflow('reminders.yml', { test: 'true' })
-      toast('Test sent — it arrives in about a minute')
+      const r = await sendTestPush()
+      toast(r === 'sent' ? 'Test sent — it arrives in about a minute' : 'Your token needs “Actions: Read and write” for this — or run it from GitHub → Actions → reminders → Run workflow.')
     } catch (e) {
-      if (e instanceof GitHubError && (e.status === 403 || e.status === 404))
-        toast('Your token needs “Actions: Read and write” for this — or run it from GitHub → Actions → reminders → Run workflow.')
-      else toast((e as Error).message)
+      toast((e as Error).message)
+    }
+  }
+
+  async function copy(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast('Link copied')
+    } catch {
+      prompt('Copy this link', text)
     }
   }
 
@@ -102,10 +110,10 @@ export default function Routine() {
           ) : thisDevice ? (
             <div className="flex items-center gap-3">
               <BellRing size={22} className="text-acc" />
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <div className="text-[15px] font-semibold">On for this {thisDevice.device}</div>
                 <div className="text-[12.5px] text-ink3">
-                  {subs.length} device{subs.length === 1 ? '' : 's'} receive reminders
+                  {last ? `Last one arrived ${relTime(last.at)}${last.title ? ` · ${last.title}` : ''}` : 'None arrived yet — send a test'}
                 </div>
               </div>
               <Button size="sm" variant="soft" icon={<Send size={15} />} onClick={test}>
@@ -120,6 +128,11 @@ export default function Routine() {
                 Enable notifications
               </Button>
             </div>
+          )}
+          {thisDevice && platform() === 'android' && (
+            <p className="mt-3 text-[12.5px] leading-relaxed text-ink3">
+              {subs.length} device{subs.length === 1 ? '' : 's'} get reminders. Buttons like “+250 ml” and “Done ✓” log without opening Forme. Not arriving? Android Settings → Apps → Forme (and Chrome) → Notifications.
+            </p>
           )}
           {sync.workflowBlocked && (
             <div className="mt-3 flex gap-2 rounded-2xl bg-bad/10 p-3 text-[13px] text-bad">
@@ -239,6 +252,27 @@ export default function Routine() {
             Save changes
           </Button>
         )}
+      </Section>
+
+      <Section title="Quick-log links">
+        <Card>
+          <p className="text-[14px] leading-relaxed text-ink2">
+            Opening one of these links logs straight away — for home-screen shortcuts and automation apps. On Android, Tasker with the Health Connect plugin can read today's steps and open the steps link for you each evening.
+          </p>
+          <div className="mt-3 space-y-2">
+            {LINKS.map((l) => (
+              <button key={l.path} onClick={() => copy(base + l.path)} className="press flex w-full items-center gap-3 rounded-2xl bg-card2 px-3 py-2.5 text-left">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14px] font-semibold">{l.label}</span>
+                  <span className="block truncate font-mono text-[12px] text-ink3">#/{l.path}</span>
+                  {l.note && <span className="block text-[12px] text-ink3">{l.note}</span>}
+                </span>
+                <Copy size={16} className="shrink-0 text-acc" />
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 px-1 text-[12.5px] leading-relaxed text-ink3">Also works: sleep=7.5 · check=skin-pm · session=mobility · d=2026-10-20 (up to a week back) · then=/body to land elsewhere.</p>
+        </Card>
       </Section>
 
       <Section title="Calendar backup">

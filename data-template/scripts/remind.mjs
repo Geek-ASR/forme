@@ -69,7 +69,10 @@ const cardsDue = read('data/german-srs.json').filter((s) => s.due <= date).lengt
 const targets = { kcal: 1650, protein: 100, waterMl: 3000, germanMinutes: 20, ...(settings.targets ?? {}) }
 const checks = day.checks ?? {}
 const kcal = Math.round(food.reduce((s, f) => s + (f.kcal || 0), 0))
-const meals = new Set(food.map((f) => f.meal))
+const meals = new Set([...food.map((f) => f.meal), ...(day.skipped ?? [])]) // a skipped meal counts as logged
+
+// Notification buttons (Android shows up to 2). `op` is logged by the service worker without opening the app.
+const DONE = (id) => [{ action: 'done', title: 'Done ✓', op: { type: 'check', id } }]
 
 function skinTonight() {
   if (day.skinIrritated) return 'rest'
@@ -86,11 +89,11 @@ function skinTonight() {
 function personalise(r) {
   switch (r.kind) {
     case 'mobility':
-      if (acts.some((a) => a.kind === 'mobility')) return null
+      if (acts.some((a) => a.kind === 'mobility') || checks.mobility) return null
       if ((day.pain ?? 0) >= 6 || day.flare) return { ...r, body: 'Rough day? Flare care is eight gentle minutes.', url: '#/body/workout/flare' }
-      return r
+      return { ...r, actions: [{ action: 'done', title: 'Did it ✓', op: { type: 'session', id: 'mobility' } }] }
     case 'skin-am':
-      return checks['skin-am'] ? null : r
+      return checks['skin-am'] ? null : { ...r, actions: DONE('skin-am') }
     case 'skin-pm': {
       if (checks['skin-pm']) return null
       const n = skinTonight()
@@ -100,10 +103,10 @@ function personalise(r) {
         retinoid: 'Retinoid night: cleanse → pea-sized retinoid on dry skin → moisturiser.',
         rest: 'Recovery night: cleanse gently and moisturise only.',
       }[n]
-      return { ...r, body }
+      return { ...r, body, actions: DONE('skin-pm') }
     }
     case 'workout':
-      if (day.flare || acts.some((a) => a.kind !== 'mobility')) return null
+      if (day.flare || checks.workout || acts.some((a) => a.kind !== 'mobility')) return null
       return r
     case 'german':
       if (deMin >= targets.germanMinutes) return null
@@ -116,7 +119,19 @@ function personalise(r) {
     case 'water': {
       const ml = day.waterMl ?? 0
       if (ml >= targets.waterMl * 0.6) return null
-      return { ...r, body: `${(ml / 1000).toFixed(1)} L so far today — have a glass now.` }
+      return {
+        ...r,
+        body: `${(ml / 1000).toFixed(1)} L so far today — have a glass now.`,
+        actions: [
+          { action: 'w250', title: '+250 ml', op: { type: 'water', ml: 250 } },
+          { action: 'w500', title: '+500 ml', op: { type: 'water', ml: 500 } },
+        ],
+      }
+    }
+    case 'evening': {
+      if (day.closedAt) return null
+      const n = food.length ? new Set(food.map((f) => f.meal)).size : 0
+      return n ? { ...r, body: `${n} meal${n > 1 ? 's' : ''} logged · ${kcal} kcal so far. 30 seconds to close the day.` } : r
     }
     default:
       return r
@@ -126,10 +141,11 @@ function personalise(r) {
 const toSend = due.map(personalise).filter(Boolean)
 let sent = 0
 for (const r of toSend) {
-  const payload = JSON.stringify({ title: r.label, body: r.body ?? '', url: r.url ?? '#/', tag: r.id })
+  const payload = JSON.stringify({ title: r.label, body: r.body ?? '', url: r.url ?? '#/', tag: r.id, date, actions: r.actions ?? [] })
   for (const s of subs) {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, payload, { TTL: 3 * 3600, urgency: 'normal' })
+      // high urgency: delivered on time even when Android is dozing; a reminder older than 2 h is dropped
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, payload, { TTL: 2 * 3600, urgency: 'high' })
       sent++
       console.log(`sent "${r.label}" → ${s.device}`)
     } catch (e) {

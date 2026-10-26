@@ -45,6 +45,10 @@ const subscribe = (fn: () => void) => {
 export const useSync = () => useSyncExternalStore(subscribe, () => status)
 export const getSyncStatus = () => status
 
+/** Safe to write on top of local data: the first pull is in, or no pull is possible right now. */
+export const isSettled = (s: SyncStatus) => s.firstPullDone || s.state === 'offline' || s.state === 'local' || s.state === 'auth' || s.state === 'error'
+export const useSyncSettled = () => isSettled(useSync())
+
 export function scheduleSync(delay = 2500) {
   clearTimeout(timer)
   timer = setTimeout(() => void run(), delay)

@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { BottomNav, hideNavFor } from './components/Nav'
-import { Toasts } from './components/Toasts'
+import { Toasts, toast } from './components/Toasts'
 import { getConn, isLocked, useAuthVersion } from './lib/auth'
+import { drainInbox } from './lib/inbox'
 import { match, useRoute } from './lib/router'
 import { hasAnyData, loadStore } from './lib/store'
-import { initSync, scheduleSync, useSync } from './lib/sync'
+import { initSync, isSettled, scheduleSync, useSync } from './lib/sync'
 import Connect from './screens/Connect'
+import Evening from './screens/Evening'
 import Lock from './screens/Lock'
+import QuickLog from './screens/QuickLog'
+import Share from './screens/Share'
 import Today from './screens/Today'
 import Body from './screens/body/Body'
 import Food from './screens/body/Food'
@@ -48,6 +52,9 @@ import { Spinner } from './components/ui'
 type R = [string, (p: Record<string, string>) => React.ReactNode]
 const ROUTES: R[] = [
   ['/', () => <Today />],
+  ['/evening', () => <Evening />],
+  ['/log', () => <QuickLog />],
+  ['/share', () => <Share />],
   ['/body', () => <Body />],
   ['/body/food', () => <Food />],
   ['/body/food/add', () => <AddFood />],
@@ -121,9 +128,29 @@ export default function App() {
   }, [])
 
   const conn = getConn()
+  const locked = isLocked()
   useEffect(() => {
-    if (ready && conn && !isLocked()) scheduleSync(0)
-  }, [ready, conn])
+    if (ready && conn && !locked) scheduleSync(0)
+  }, [ready, conn, locked])
+
+  // Logs made from notification buttons wait in the service worker's inbox until the app is open
+  // and has pulled the latest data (so "+250 ml" adds to the real total).
+  const settled = isSettled(sync)
+  useEffect(() => {
+    if (!ready || !conn || locked || !settled) return
+    const run = () =>
+      void drainInbox().then((done) => {
+        if (done.length) toast(`From your notifications: ${done.join(' · ')}`)
+      })
+    const onVisible = () => document.visibilityState === 'visible' && run()
+    run()
+    window.addEventListener('forme:inbox', run)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('forme:inbox', run)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [ready, conn, locked, settled])
 
   if (route.path === '/blog' || route.path.startsWith('/p/')) return <Blog path={route.path} />
   if (!ready) return <Splash />

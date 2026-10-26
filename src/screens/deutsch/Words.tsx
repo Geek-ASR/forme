@@ -124,13 +124,13 @@ export default function Words() {
         </Section>
       )}
 
-      <AddWord open={adding} onClose={() => setAdding(false)} level={g.level} />
+      <AddWord open={adding} onClose={() => setAdding(false)} level={g.level} initial={query.get('de') ?? ''} />
     </Page>
   )
 }
 
-function AddWord({ open, onClose, level }: { open: boolean; onClose: () => void; level: Level }) {
-  const [w, setW] = useState({ de: '', art: '', en: '', pl: '', ex: '' })
+function AddWord({ open, onClose, level, initial = '' }: { open: boolean; onClose: () => void; level: Level; initial?: string }) {
+  const [w, setW] = useState({ de: initial, art: '', en: '', pl: '', ex: '' })
   function save() {
     if (!w.de.trim() || !w.en.trim()) return toast('German and English are both needed')
     const de = w.de.trim().replace(/^(der|die|das)\s+/i, (m) => {

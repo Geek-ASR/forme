@@ -28,7 +28,7 @@ export const DEFAULT_REMINDERS: Reminder[] = [
   { id: 'r-lunch', label: 'Log lunch', body: 'Tell Forme what you ate.', time: '14:30', days: ALL, enabled: true, kind: 'food', url: '#/body/food/add' },
   { id: 'r-workout', label: 'Workout time', body: "Today's session is ready.", time: '18:00', days: [1, 2, 3, 4, 5, 6], enabled: true, kind: 'workout', url: '#/body/plan' },
   { id: 'r-german', label: 'Deutsch', body: 'Your cards are waiting.', time: '20:30', days: ALL, enabled: true, kind: 'german', url: '#/deutsch/review' },
-  { id: 'r-dinner', label: 'Log dinner', body: 'Close the day: dinner, water, steps.', time: '21:45', days: ALL, enabled: true, kind: 'food', url: '#/body/food/add' },
+  { id: 'r-dinner', label: 'Close the day', body: '30 seconds: meals, water, steps, how you felt.', time: '21:45', days: ALL, enabled: true, kind: 'evening', url: '#/evening' },
   { id: 'r-skin-pm', label: 'PM skincare', body: 'Cleanse, serum, moisturiser.', time: '22:30', days: ALL, enabled: true, kind: 'skin-pm', url: '#/body/skin' },
   { id: 'r-sleep', label: 'Wind down', body: 'Screens away, a gentle stretch, lights out by 11:30.', time: '23:15', days: ALL, enabled: true, kind: 'sleep', url: '#/' },
   { id: 'r-weekly', label: 'Weekly check', body: 'Weigh-in and your weekly review.', time: '10:00', days: [0], enabled: true, kind: 'weekly', url: '#/me/review' },

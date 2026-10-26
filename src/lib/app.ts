@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { DEFAULT_SETTINGS } from '../data/defaults'
 import { PHASES, programDay } from '../data/program'
 import { dayBurn, weightOn } from './calc'
-import { dkey } from './date'
+import { dkey, fmtTime, minutesOf } from './date'
 import { sumEntries } from './food'
 import { get, patch, put, useColl, useDoc } from './store'
 import type { Activity, BodyEntry, Day, DeLog, FoodEntry, HybridNote, Meal, Post, Profile, RoutineItem, Settings } from './types'
@@ -157,10 +157,12 @@ export function evaluateRoutine(d: DayData): ItemStatus[] {
           auto = d.deMinutes >= t.germanMinutes
           detail = `${d.deMinutes} / ${t.germanMinutes} min`
           break
-        case 'meals':
-          auto = d.meals.size >= 3
-          detail = `${d.meals.size} of 3+ meals`
+        case 'meals': {
+          const n = new Set([...d.meals, ...(d.day?.skipped ?? [])]).size
+          auto = n >= 3
+          detail = `${n} of 3+ meals`
           break
+        }
         case 'protein':
           auto = d.totals.p >= t.protein
           detail = `${Math.round(d.totals.p)} / ${t.protein} g`
@@ -175,6 +177,41 @@ export function evaluateRoutine(d: DayData): ItemStatus[] {
       const manual = checks[item.id]
       return { item, done: manual === true || (manual !== false && auto), auto: auto && manual !== true, detail }
     })
+}
+
+export type Focus = { id: string; label: string; detail?: string; icon: string; href?: string; check?: string; water?: boolean; at: number }
+
+/**
+ * "Next up" on Today: at most three things worth doing now. Timed habits show from an hour before
+ * until three hours after their time (then they quietly drop off — no guilt list), meals nudge during
+ * the day, water only when well behind pace, and from 7 pm the evening check-in takes over.
+ */
+export function focusItems(d: DayData, routine: ItemStatus[], nowMin: number): { now: Focus[]; next?: Focus } {
+  const items: Focus[] = []
+  const later: Focus[] = []
+  const evening = nowMin >= 19 * 60
+  for (const r of routine) {
+    if (r.done || !r.item.time) continue
+    const t = minutesOf(r.item.time)
+    const f: Focus = { id: r.item.id, label: r.item.label, detail: [fmtTime(r.item.time), r.detail].filter(Boolean).join(' · '), icon: r.item.icon, href: r.item.link, check: r.item.id, at: t }
+    if (nowMin >= t - 60 && nowMin <= t + 180) items.push(f)
+    else if (t - 60 > nowMin) later.push(f)
+  }
+  if (!evening) {
+    const had = (m: Meal) => d.meals.has(m) || !!d.day?.skipped?.includes(m)
+    if (nowMin >= 10 * 60 && !had('breakfast')) items.push({ id: 'breakfast', label: 'Log breakfast', icon: 'utensils', href: '#/body/food/add?meal=breakfast', at: 10 * 60 })
+    if (nowMin >= 14 * 60 && !had('lunch')) items.push({ id: 'lunch', label: 'Log lunch', icon: 'utensils', href: '#/body/food/add?meal=lunch', at: 14 * 60 })
+  }
+  const target = d.settings.targets.waterMl
+  const ml = d.day?.waterMl ?? 0
+  const pace = target * Math.min(1, Math.max(0, (nowMin - 9 * 60) / (12 * 60)))
+  if (ml < target && ml < pace - 500) {
+    items.push({ id: 'water', label: 'Have a glass of water', detail: `${(ml / 1000).toFixed(1)} of ${target / 1000} L so far`, icon: 'droplet', water: true, at: nowMin })
+  }
+  if (evening && !d.day?.closedAt) {
+    items.push({ id: 'close', label: 'Close the day', detail: '30 seconds · meals, water, steps', icon: 'moon', href: '#/evening', at: nowMin >= 21 * 60 ? -1 : 21 * 60 })
+  }
+  return { now: items.sort((a, b) => a.at - b.at).slice(0, 3), next: later.sort((a, b) => a.at - b.at)[0] }
 }
 
 export function setCheck(date: string, id: string, value: boolean) {

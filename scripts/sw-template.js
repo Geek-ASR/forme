@@ -59,6 +59,12 @@ self.addEventListener('fetch', (event) => {
   )
 })
 
+// The last notification shown on this device — the app reads it to confirm reminders arrive here.
+const PUSH_LOG = new URL('__forme/last-push', self.registration.scope).href
+
+const tellClients = (msg) =>
+  self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((ws) => ws.forEach((w) => w.postMessage(msg)))
+
 self.addEventListener('push', (event) => {
   let data = {}
   try {
@@ -67,21 +73,68 @@ self.addEventListener('push', (event) => {
     data = { body: event.data ? event.data.text() : '' }
   }
   const title = data.title || 'Forme'
+  // Buttons, e.g. { action: 'w250', title: '+250 ml', op: { type: 'water', ml: 250 } } — max 2 on Android.
+  const actions = Array.isArray(data.actions) ? data.actions.slice(0, 2) : []
+  const log = caches
+    .open(RUNTIME)
+    .then((c) => c.put(PUSH_LOG, new Response(JSON.stringify({ at: Date.now(), tag: data.tag || '', title }), { headers: { 'content-type': 'application/json' } })))
+    .then(() => tellClients({ type: 'push', tag: data.tag || '' }))
+    .catch(() => {})
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: data.body || '',
-      icon: 'icons/icon-192.png',
-      badge: 'icons/badge-96.png',
-      tag: data.tag || undefined,
-      renotify: !!data.tag,
-      data: { url: data.url || '#/' },
-    }),
+    Promise.all([
+      self.registration.showNotification(title, {
+        body: data.body || '',
+        icon: 'icons/icon-192.png',
+        badge: 'icons/badge-96.png',
+        tag: data.tag || undefined,
+        renotify: !!data.tag,
+        actions: actions.map((a) => ({ action: a.action, title: a.title })),
+        data: { url: data.url || '#/', date: data.date, actions },
+      }),
+      log,
+    ]),
   )
 })
 
+// ── inbox: logs made from notification buttons, applied by the app next time it opens (src/lib/inbox.ts) ──
+function queueOp(op) {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('forme-inbox', 1)
+    req.onupgradeneeded = () => req.result.createObjectStore('ops', { autoIncrement: true })
+    req.onerror = () => reject(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      const tx = db.transaction('ops', 'readwrite')
+      tx.objectStore('ops').add(op)
+      tx.oncomplete = () => {
+        db.close()
+        resolve()
+      }
+      tx.onerror = () => reject(tx.error)
+    }
+  })
+}
+
+const localDate = () => {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const target = new URL(event.notification.data?.url || '#/', self.registration.scope).href
+  const data = event.notification.data || {}
+  const button = event.action ? (data.actions || []).find((a) => a.action === event.action) : null
+  if (button && button.op) {
+    // Logged straight from the notification — no need to open the app.
+    event.waitUntil(
+      queueOp({ ...button.op, date: data.date || localDate() })
+        .then(() => tellClients({ type: 'inbox' }))
+        .catch(() => {}),
+    )
+    return
+  }
+  const target = new URL((button && button.url) || data.url || '#/', self.registration.scope).href
   event.waitUntil(
     (async () => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })

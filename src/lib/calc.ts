@@ -119,13 +119,18 @@ export function basdai(q: number[]): number {
   return Math.round(((q[0] + q[1] + q[2] + q[3] + (q[4] + q[5]) / 2) / 5) * 10) / 10
 }
 
-/** Consecutive days (ending today, or yesterday if today isn't done yet) present in the set */
-export function streak(days: Set<string>, today = dkey()): number {
+/**
+ * Days present in the set, counting back from today (or yesterday if today isn't done yet).
+ * Forgiving: `grace` missed days in a row don't end the streak (life happens); one more does.
+ */
+export function streak(days: Set<string>, today = dkey(), grace = 1): number {
   let n = 0
-  let d = days.has(today) ? today : addDays(today, -1)
-  while (days.has(d)) {
-    n++
-    d = addDays(d, -1)
+  let miss = 0
+  for (let d = days.has(today) ? today : addDays(today, -1); ; d = addDays(d, -1)) {
+    if (days.has(d)) {
+      n++
+      miss = 0
+    } else if (++miss > grace) break
   }
   return n
 }

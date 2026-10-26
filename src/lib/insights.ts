@@ -6,7 +6,26 @@ import { programDay } from '../data/program'
 import { useByDate, useProfile, useSettings } from './app'
 import { addDays, dkey, rangeKeys } from './date'
 import { useColl } from './store'
-import type { Activity, Day, DeLog, FoodEntry, Post } from './types'
+import type { Activity, BodyEntry, Day, DeLog, FoodEntry, HybridNote, Post, Rating } from './types'
+
+/** Days you showed up for yourself: logged anything, checked in, moved, wrote, practised German. */
+export function useActiveDays(): Set<string> {
+  const food = useColl<FoodEntry>('food')
+  const acts = useColl<Activity>('activity')
+  const de = useColl<DeLog>('deLog')
+  const posts = useColl<Post>('posts')
+  const body = useColl<BodyEntry>('body')
+  const days = useColl<Day>('days')
+  const hybrid = useColl<HybridNote>('hybrid')
+  const ratings = useColl<Rating>('ratings')
+  return useMemo(() => {
+    const s = new Set<string>()
+    for (const list of [food, acts, de, posts, body]) for (const r of list) s.add(r.date)
+    for (const r of [...hybrid, ...ratings]) s.add(dkey(new Date(r.createdAt)))
+    for (const d of days) if (d.mood || d.steps || d.waterMl || d.closedAt || Object.values(d.checks ?? {}).some(Boolean)) s.add(d.id)
+    return s
+  }, [food, acts, de, posts, body, days, hybrid, ratings])
+}
 
 export type DayScore = { date: string; score: number; parts: Record<string, boolean> }
 

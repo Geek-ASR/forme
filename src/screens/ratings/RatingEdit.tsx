@@ -15,7 +15,7 @@ export default function RatingEdit({ id }: { id?: string }) {
   const cats = useRatingCats()
   const existing = id ? get<Rating>('ratings', id) : undefined
   const [r, setR] = useState<Partial<Rating>>(() => {
-    const base = existing ?? { cat: query.get('cat') || 'movies', status: 'done' as RatingStatus, date: dkey() }
+    const base = existing ?? { cat: query.get('cat') || 'movies', status: 'done' as RatingStatus, date: dkey(), title: query.get('title') ?? undefined, notes: query.get('notes') ?? undefined }
     const st = query.get('status') as RatingStatus | null
     return st ? { ...base, status: st, date: st === 'done' ? dkey() : base.date } : base
   })

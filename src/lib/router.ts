@@ -2,6 +2,11 @@
 
 import { useSyncExternalStore } from 'react'
 
+// Android share sheet → Forme arrives as ./?share_text=… (manifest share_target); move it into the hash route.
+if (typeof location !== 'undefined' && /(^|[?&])share_/.test(location.search)) {
+  history.replaceState(null, '', location.pathname + '#/share' + location.search)
+}
+
 function read() {
   const h = location.hash.replace(/^#/, '') || '/'
   const [path, qs = ''] = h.split('?')
