@@ -78,6 +78,7 @@ export type Settings = Rec & {
   ratingCats?: RatingCat[]
   training?: { dumbbellKg?: number; dumbbells?: number }
   tokenExpires?: string // 'YYYY-MM-DD' or 'never' — when the GitHub token stops working (warned 7 days ahead)
+  mealPlan?: { whey?: boolean; skip?: string[] }
 }
 
 export type Day = Rec & {
@@ -130,6 +131,11 @@ export type CustomFood = Rec & {
 
 export type MealTemplate = Rec & { name: string; items: { foodId: string; name: string; qty: number }[] }
 
+/** One planned day: a meal template per slot (see data/mealplan.ts), plus an optional top-up food. */
+export type DayPlan = Record<Meal, string> & { extra?: string }
+/** A week's meal plan, keyed by its Monday. `got` = grocery items already bought. */
+export type MealPlan = Rec & { days: Record<string, DayPlan>; got?: string[]; createdAt: number }
+
 export type Activity = Rec & {
   date: string
   kind: 'workout' | 'walk' | 'activity' | 'mobility'
@@ -141,6 +147,7 @@ export type Activity = Rec & {
   rpe?: number
   pain?: number
   note?: string
+  easy?: boolean // the easy version (sore day)
 }
 
 export type BodyEntry = Rec & {
@@ -255,4 +262,4 @@ export type Rating = Rec & {
 }
 
 /** One exercise in one session: reps (or seconds) achieved per set. */
-export type Lift = Rec & { date: string; session: string; exId: string; reps: number[]; unit: 'reps' | 'sec'; kg?: number }
+export type Lift = Rec & { date: string; session: string; exId: string; reps: number[]; unit: 'reps' | 'sec'; kg?: number; easy?: boolean }

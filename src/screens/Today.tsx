@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronRight, Droplet, Footprints, KeyRound, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame, X } from 'lucide-react'
+import { Check, ChefHat, ChevronDown, ChevronRight, Droplet, Footprints, KeyRound, Mail, Moon, Plus, Scale, Sparkles, Volume2, Flame, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { MacroBar, moodEmoji } from '../components/charts'
 import { CheckIn } from '../components/CheckIn'
@@ -17,14 +17,16 @@ import { NIGHT_LABEL, skinNight } from '../data/skincare'
 import { addWater, evaluateRoutine, focusItems, patchDay, saveSettings, setCheck, useDayData, useWeightNow, type DayData, type ItemStatus } from '../lib/app'
 import { getConn } from '../lib/auth'
 import { kfmt, streak } from '../lib/calc'
-import { addDays, diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekday } from '../lib/date'
+import { addDays, diffDays, dkey, fmtDay, fmtLong, fmtTime, greeting, weekStart, weekday } from '../lib/date'
 import { useActiveDays } from '../lib/insights'
+import { PLAN_MEALS, TPL, dayTotals } from '../lib/mealplan'
+import { EASY_WHAT, useReadiness } from '../lib/readiness'
 import { excerpt } from '../lib/md'
 import { go } from '../lib/router'
 import { speak } from '../lib/speech'
 import { TOKEN_HELP_URL } from '../lib/config'
-import { patch, useColl } from '../lib/store'
-import type { BodyEntry, Letter, Post, SrsState } from '../lib/types'
+import { patch, useColl, useDoc } from '../lib/store'
+import type { BodyEntry, Letter, MealPlan, Post, SrsState } from '../lib/types'
 import { ART_COLOR } from '../lib/srs'
 
 const ROUTINE_OPEN = 'forme.today.routineOpen'
@@ -77,6 +79,9 @@ export default function Today() {
   const balance = d.totals.kcal - d.burn.total
   const flare = !!d.day?.flare
   const sessions = flare ? [SESSIONS.flare] : d.program.sessions
+  const ready = useReadiness(date)
+  const menu = useDoc<MealPlan>('mealPlans', weekStart(date))?.days[date]
+  const trains = !flare && sessions.some((s) => s.mode !== 'rest' && s.kind !== 'mobility')
   const skin = skinNight({ skinStart: d.profile.skinStart, date, irritated: d.day?.skinIrritated, products: d.settings.skincare.products })
   const word = wordOfDay(date)
   const due = srs.filter((s) => s.due <= date).length
@@ -388,35 +393,60 @@ export default function Today() {
       <div className="mt-3 scroll-mt-24" id="checkin">
         <CheckIn date={date} day={d.day} compact />
       </div>
-      {(d.day?.pain ?? 0) >= 7 && !flare && (
-        <Card className="mt-3 border-bad/30">
-          <div className="text-[15px] font-semibold">Rough day for your back?</div>
-          <div className="mt-1 text-[13.5px] text-ink3">Switch today to Flare care — gentle movement, no intensity. Movement still helps.</div>
-          <Button className="mt-3" variant="soft" onClick={() => patchDay(date, { flare: true })}>
-            Switch to flare care
-          </Button>
-        </Card>
-      )}
-
-      {/* Plan */}
+      {/* Plan — adjusted to this morning's check-in (lib/readiness) */}
       <Section title="Today's plan">
         <div className="space-y-2.5">
-          {sessions.map((s) => (
-            <Card key={s.id} href={s.mode === 'rest' ? '#/body/plan' : `#/body/workout/${s.id}`}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-acc-soft text-acc">
-                  <Flame size={20} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[15.5px] font-semibold">{s.name}</div>
-                  <div className="truncate text-[13px] text-ink3">
-                    {s.mode === 'rest' ? 'Mobility + easy walk + weekly review' : `${sessionMinutes(s, d.program.phase.n)} min · ${d.program.phase.name}`}
-                  </div>
-                </div>
-                {s.mode !== 'rest' && <Pill>Start</Pill>}
-              </div>
+          {trains && ready.level === 'flare' && (
+            <Card className="border-bad/30">
+              <div className="text-[15px] font-semibold">Rough day for your back</div>
+              <div className="mt-1 text-[13.5px] leading-snug text-ink3">{ready.reason} Flare care is eight gentle minutes — movement still helps. Up for a bit more? The sessions below open in their easy version.</div>
+              <Button className="mt-3" size="sm" variant="soft" onClick={() => patchDay(date, { flare: true })}>
+                Switch to flare care
+              </Button>
             </Card>
-          ))}
+          )}
+          {trains && ready.level === 'easy' && (
+            <div className="acc-de rounded-3xl border border-acc/40 bg-acc-soft px-4 py-3">
+              <div className="text-[15px] font-semibold">Easy version today</div>
+              <div className="mt-0.5 text-[13px] leading-snug text-ink2">
+                {ready.reason} {EASY_WHAT}
+              </div>
+            </div>
+          )}
+          {trains && ready.level === 'unknown' && (
+            <button
+              onClick={() => document.getElementById('checkin')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="press px-1 text-left text-[13px] leading-snug text-ink3"
+            >
+              Check in first (pain and stiffness) — today's session adjusts to your back.
+            </button>
+          )}
+          {sessions.map((s) => {
+            const easy = (ready.level === 'easy' || ready.level === 'flare') && !flare && s.mode !== 'rest' && s.kind !== 'mobility' && s.kind !== 'flare'
+            return (
+              <Card key={s.id} href={s.mode === 'rest' ? '#/body/plan' : `#/body/workout/${s.id}${easy ? '?easy=1' : ''}`}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-acc-soft text-acc">
+                    <Flame size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[15.5px] font-semibold">{s.name}</div>
+                    <div className="truncate text-[13px] text-ink3">
+                      {s.mode === 'rest' ? 'Mobility + easy walk + weekly review' : `${sessionMinutes(s, d.program.phase.n, easy)} min · ${easy ? 'easy version' : d.program.phase.name}`}
+                    </div>
+                  </div>
+                  {s.mode !== 'rest' &&
+                    (easy ? (
+                      <span className="acc-de">
+                        <Pill>Easy</Pill>
+                      </span>
+                    ) : (
+                      <Pill>Start</Pill>
+                    ))}
+                </div>
+              </Card>
+            )
+          })}
           {flare && (
             <button onClick={() => patchDay(date, { flare: false })} className="press px-1 text-[13px] font-semibold text-acc">
               Feeling better? Restore the normal plan
@@ -434,6 +464,24 @@ export default function Today() {
               <ChevronRight size={18} className="text-ink3" />
             </div>
           </Card>
+          {(menu || [0, 1, 6].includes(weekday(date))) && (
+            <Card href="#/body/meals">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-acc-soft text-acc">
+                  <ChefHat size={20} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[15.5px] font-semibold">{menu ? "Today's menu" : "Plan this week's meals"}</div>
+                  <div className="line-clamp-2 text-[13px] leading-snug text-ink3">
+                    {menu
+                      ? `${PLAN_MEALS.map((m) => TPL.get(menu[m])?.name.split(',')[0]).join(' · ')} — ${kfmt(dayTotals(menu).kcal)} kcal, ${Math.round(dayTotals(menu).p)} g protein`
+                      : 'High-protein veg meals for the week, and the grocery list'}
+                  </div>
+                </div>
+                <ChevronRight size={18} className="shrink-0 text-ink3" />
+              </div>
+            </Card>
+          )}
         </div>
       </Section>
 
@@ -508,8 +556,8 @@ export default function Today() {
             <Button full onClick={() => go('/deutsch/review')}>
               {due ? `Review ${due} due` : 'Learn new words'}
             </Button>
-            <Button variant="outline" onClick={() => go('/deutsch/sprint')}>
-              der·die·das
+            <Button variant="outline" onClick={() => go('/deutsch/speak')}>
+              Speak
             </Button>
           </div>
         </Card>

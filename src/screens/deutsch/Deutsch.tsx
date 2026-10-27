@@ -1,4 +1,4 @@
-import { BookA, BookOpenText, ExternalLink, GraduationCap, Plus, Swords } from 'lucide-react'
+import { AudioLines, BookA, BookOpenText, ChevronRight, ExternalLink, GraduationCap, Plus, Swords } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Columns } from '../../components/charts'
 import { SyncBadge } from '../../components/SyncBadge'
@@ -106,6 +106,19 @@ export default function Deutsch() {
         <Button full size="lg" className="mt-4" icon={<GraduationCap size={19} />} onClick={() => go('/deutsch/review')}>
           {due + newLeft ? `Study · ${due} due + ${newLeft} new` : 'All done — practise anyway'}
         </Button>
+      </Card>
+
+      <Card href="#/deutsch/speak" className="mt-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-acc-soft text-acc">
+            <AudioLines size={21} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-[15.5px] font-semibold">Speak</div>
+            <div className="text-[13px] text-ink3">Shadow 8 sentences out loud · instant feedback on every word</div>
+          </div>
+          <ChevronRight size={18} className="shrink-0 text-ink3" />
+        </div>
       </Card>
 
       <div className="mt-3 grid grid-cols-3 gap-2.5">

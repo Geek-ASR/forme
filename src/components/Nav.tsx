@@ -9,7 +9,7 @@ const TABS = [
   { key: 'me', href: '#/me', label: 'Me', Icon: CircleUser, match: (p: string) => p.startsWith('/me') },
 ]
 
-const IMMERSIVE = [/^\/(evening|log|share)$/, /^\/body\/workout\//, /^\/body\/food\/add/, /^\/deutsch\/(review|sprint)/, /^\/mind\/(new|edit)/, /^\/hybrid\/(new|edit)/, /^\/ratings\/(new|edit)/]
+const IMMERSIVE = [/^\/(evening|log|share)$/, /^\/body\/workout\//, /^\/body\/food\/add/, /^\/deutsch\/(review|sprint|speak)/, /^\/mind\/(new|edit)/, /^\/hybrid\/(new|edit)/, /^\/ratings\/(new|edit)/]
 export const hideNavFor = (path: string) => IMMERSIVE.some((r) => r.test(path))
 
 export function BottomNav({ path }: { path: string }) {

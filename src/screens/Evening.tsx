@@ -11,14 +11,15 @@ import { PLAN_DAYS, SESSIONS, challengeSpan, programDay } from '../data/program'
 import { NIGHT_LABEL, skinNight } from '../data/skincare'
 import { evaluateRoutine, patchDay, useDayData, type DayData } from '../lib/app'
 import { kfmt, streak } from '../lib/calc'
-import { addDays, dkey, fmtDay, fmtTime, hm } from '../lib/date'
+import { addDays, dkey, fmtDay, fmtTime, hm, weekStart } from '../lib/date'
 import { entryFromFood, foodList, multiplier, nutrients, parseMeal, portionText } from '../lib/food'
 import { applyOp } from '../lib/inbox'
 import { useActiveDays } from '../lib/insights'
+import { plannedEntries } from '../lib/mealplan'
 import { go, useRoute } from '../lib/router'
 import { canListen, listen } from '../lib/speech'
-import { put, remove, useColl } from '../lib/store'
-import type { CustomFood, FoodEntry, Meal, Post } from '../lib/types'
+import { put, remove, useColl, useDoc } from '../lib/store'
+import type { CustomFood, FoodEntry, Meal, MealPlan, Post } from '../lib/types'
 import type { Food } from '../data/foods'
 
 const MEALS: Meal[] = ['breakfast', 'lunch', 'snack', 'dinner']
@@ -242,6 +243,7 @@ export default function Evening() {
 
 function MealRow({ meal, date, d, food, foods }: { meal: Meal; date: string; d: DayData; food: FoodEntry[]; foods: Food[] }) {
   const [typing, setTyping] = useState(false)
+  const plan = useDoc<MealPlan>('mealPlans', weekStart(date))
   const logged = d.food.filter((e) => e.meal === meal)
   const skipped = !!d.day?.skipped?.includes(meal)
   const usual = useMemo(() => usualMeal(food, meal, date), [food, meal, date])
@@ -281,9 +283,13 @@ function MealRow({ meal, date, d, food, foods }: { meal: Meal; date: string; d: 
       </div>
     )
   }
-  const options = [usual && { label: `Usual · ${usual.days} times`, combo: usual }, yesterday && yesterday.key !== usual?.key && { label: 'Like yesterday', combo: yesterday }].filter(
-    (o): o is { label: string; combo: Combo } => !!o,
-  )
+  const day = plan?.days[date]
+  const planned = day?.[meal] ? comboOf(plannedEntries(day, meal, date).map((e, k) => ({ ...e, id: `plan-${k}`, updatedAt: 0 }))) : null
+  const options = [
+    planned && { label: 'Planned', combo: planned },
+    usual && usual.key !== planned?.key && { label: `Usual · ${usual.days} times`, combo: usual },
+    yesterday && yesterday.key !== usual?.key && yesterday.key !== planned?.key && { label: 'Like yesterday', combo: yesterday },
+  ].filter((o): o is { label: string; combo: Combo } => !!o)
   return (
     <div className="rounded-3xl border border-line bg-card p-3">
       <div className="px-1 text-[15px] font-semibold">{MEAL_LABEL[meal]}</div>

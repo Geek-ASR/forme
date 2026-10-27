@@ -1,4 +1,4 @@
-import { Activity, BookOpenText, ClipboardList, Dumbbell, HeartPulse, Scale, Sparkles, Utensils } from 'lucide-react'
+import { Activity, BookOpenText, ChefHat, Dumbbell, HeartPulse, Scale, Sparkles, Utensils } from 'lucide-react'
 import { useMemo } from 'react'
 import { Columns, Sparkline } from '../../components/charts'
 import { SyncBadge } from '../../components/SyncBadge'
@@ -20,7 +20,7 @@ const TILES = [
   { href: '#/body/spine', label: 'Spine care', sub: 'Pain, stiffness, BASDAI, meds', Icon: HeartPulse },
   { href: '#/body/skin', label: 'Skincare', sub: 'AM / PM routine, shelf', Icon: Sparkles },
   { href: '#/body/foods', label: 'Dish library', sub: '270+ dishes · add your own', Icon: BookOpenText },
-  { href: '#/me/routine', label: 'Routine', sub: 'Daily checklist & reminders', Icon: ClipboardList },
+  { href: '#/body/meals', label: 'Meal plan', sub: 'A week of high-protein veg meals + groceries', Icon: ChefHat },
 ]
 
 export default function Body() {

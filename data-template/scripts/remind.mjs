@@ -134,9 +134,18 @@ function personalise(r) {
       }[n]
       return { ...r, body, actions: DONE('skin-pm') }
     }
-    case 'workout':
+    case 'workout': {
       if (day.flare || checks.workout || acts.some((a) => a.kind !== 'mobility')) return null
+      // same thresholds as the app's readiness check (src/lib/readiness.ts)
+      const pain = day.pain ?? 0
+      const stiff = day.stiffMin ?? 0
+      if (pain >= 7 || stiff >= 120) return { ...r, body: 'Rough day for your back — flare care is eight gentle minutes. Movement helps; intensity can wait.', url: '#/body/workout/flare' }
+      if (pain >= 4 || stiff >= 60) {
+        const why = pain >= 4 ? `Pain ${pain}/10 today` : `${stiff} min of stiffness this morning`
+        return { ...r, body: `${why} — the easy version is ready: fewer sets, gentler moves.`, url: '#/' }
+      }
       return r
+    }
     case 'german':
       if (deMin >= targets.germanMinutes) return null
       return { ...r, body: cardsDue ? `${cardsDue} cards are due · ${targets.germanMinutes - deMin} min to today's goal.` : r.body }

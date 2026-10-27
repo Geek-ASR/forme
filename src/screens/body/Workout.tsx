@@ -2,13 +2,14 @@ import { ChevronDown, ExternalLink, Pause, Play, SkipForward, StepBack, Trending
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { toast } from '../../components/Toasts'
-import { Button, Card, Field, Page, Pill, Ring, Section, Slider, Stepper, cx } from '../../components/ui'
+import { Button, Card, Field, Page, Pill, Ring, Section, Slider, Stepper, Toggle, cx } from '../../components/ui'
 import { EX, youtubeHow } from '../../data/exercises'
 import { SESSIONS, programDay, resolveItems, sessionMinutes, sessionParams, type ResolvedItem, type Session } from '../../data/program'
 import { useProfile, useSettings, useWeightNow } from '../../lib/app'
 import { metKcal } from '../../lib/calc'
 import { dkey, fmtLong } from '../../lib/date'
-import { back } from '../../lib/router'
+import { EASY_WHAT, useReadiness } from '../../lib/readiness'
+import { back, useRoute } from '../../lib/router'
 import { beep, buzz } from '../../lib/speech'
 import { put, useColl } from '../../lib/store'
 import type { Activity, Lift } from '../../lib/types'
@@ -28,12 +29,12 @@ type Step = {
   idx: number
 }
 
-/** Logged results per exercise, newest first. */
+/** Logged results per exercise, newest first. Easy-version days are left out so a sore day never lowers a target. */
 function useLastLifts() {
   const lifts = useColl<Lift>('lifts')
   return useMemo(() => {
     const m = new Map<string, Lift[]>()
-    for (const l of [...lifts].sort((a, b) => (a.date === b.date ? b.updatedAt - a.updatedAt : a.date < b.date ? 1 : -1))) {
+    for (const l of [...lifts].filter((x) => !x.easy).sort((a, b) => (a.date === b.date ? b.updatedAt - a.updatedAt : a.date < b.date ? 1 : -1))) {
       const arr = m.get(l.exId) ?? []
       arr.push(l)
       m.set(l.exId, arr)
@@ -45,10 +46,10 @@ function useLastLifts() {
 const readyToProgress = (it: ResolvedItem, last?: Lift) =>
   !!(it.range && last && last.unit === 'reps' && last.reps.length >= (it.sets ?? 1) && last.reps.every((r) => r >= it.range![1]))
 
-function buildSteps(s: Session, phase: number): Step[] {
-  const p = sessionParams(s, phase)
-  if (s.mode === 'walk') return [{ kind: 'work', exId: 'brisk-walk', label: 'Brisk walk', sec: p.walkMin * 60, round: 1, idx: 0 }]
-  const items = resolveItems(s, phase)
+function buildSteps(s: Session, phase: number, easy: boolean): Step[] {
+  const p = sessionParams(s, phase, easy)
+  if (s.mode === 'walk') return [{ kind: 'work', exId: 'brisk-walk', label: easy ? 'Easy walk' : 'Brisk walk', sec: p.walkMin * 60, round: 1, idx: 0 }]
+  const items = resolveItems(s, phase, easy)
   const steps: Step[] = []
   if (s.layout === 'straight') {
     items.forEach((it, i) => {
@@ -88,25 +89,37 @@ function buildSteps(s: Session, phase: number): Step[] {
 }
 
 export default function Workout({ id }: { id: string }) {
+  const { query } = useRoute()
   const s = SESSIONS[id] ?? SESSIONS.mobility
   const { profile } = useProfile()
   const settings = useSettings()
   const phase = programDay(profile.planStart, dkey(), !!settings.training?.dumbbellKg).phase
+  const r = useReadiness(dkey())
+  const canEase = s.kind !== 'mobility' && s.kind !== 'flare' && s.mode !== 'rest'
+  const [easy, setEasy] = useState(() => canEase && query.get('easy') === '1')
   const [playing, setPlaying] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
-  const items = resolveItems(s, phase.n)
-  const p = sessionParams(s, phase.n)
+  const items = resolveItems(s, phase.n, easy)
+  const p = sessionParams(s, phase.n, easy)
   const lastBy = useLastLifts()
+  const acts = useColl<Activity>('activity')
+  const lastTime = useMemo(() => acts.filter((a) => a.session === s.id).sort((a, b) => (a.date < b.date ? 1 : -1))[0], [acts, s.id])
   const straight = s.layout === 'straight'
+  const suggestEasy = canEase && !easy && (r.level === 'easy' || r.level === 'flare')
 
-  if (playing) return <Player session={s} phase={phase.n} onExit={() => setPlaying(false)} />
+  if (playing) return <Player session={s} phase={phase.n} easy={easy} onExit={() => setPlaying(false)} />
 
   return (
     <Page accent="body" back="/body/plan" title={s.name}>
       <Card className="mt-1">
         <p className="text-[14.5px] leading-relaxed text-ink2">{s.desc}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <Pill>{sessionMinutes(s, phase.n)} min</Pill>
+          {easy && (
+            <span className="acc-de">
+              <Pill>Easy version</Pill>
+            </span>
+          )}
+          <Pill>{sessionMinutes(s, phase.n, easy)} min</Pill>
           {straight && <Pill tone="muted">{items.reduce((a, it) => a + (it.sets ?? 0), 0)} sets</Pill>}
           {!straight && s.mode !== 'walk' && s.mode !== 'rest' && <Pill tone="muted">{p.rounds} round{p.rounds > 1 ? 's' : ''}</Pill>}
           {s.mode === 'interval' && (
@@ -123,7 +136,27 @@ export default function Workout({ id }: { id: string }) {
             </Pill>
           )}
         </div>
-        {straight && <p className="mt-3 rounded-2xl bg-acc-soft px-3 py-2 text-[13px] leading-relaxed text-ink2">Effort this phase: {phase.effort}</p>}
+        {straight && (
+          <p className="mt-3 rounded-2xl bg-acc-soft px-3 py-2 text-[13px] leading-relaxed text-ink2">
+            {easy ? 'Easy day: stop every set with 3–4 reps left in the tank.' : `Effort this phase: ${phase.effort}`}
+          </p>
+        )}
+        {canEase && (
+          <div className={cx('acc-de mt-3 rounded-2xl border px-3 py-2.5', suggestEasy ? 'border-acc/40 bg-acc-soft' : 'border-line')}>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-[14.5px] font-semibold">{suggestEasy ? 'Easy version suggested today' : 'Easy version'}</div>
+                <div className="text-[12.5px] leading-snug text-ink3">{easy ? EASY_WHAT : suggestEasy ? r.reason : 'For sore or stiff days — same session, gentler.'}</div>
+              </div>
+              <Toggle label="Easy version" checked={easy} onChange={setEasy} />
+            </div>
+          </div>
+        )}
+        {canEase && (lastTime?.pain ?? 0) >= 6 && (
+          <p className="mt-2 text-[12.5px] leading-snug text-ink3">
+            Last time ({fmtLong(lastTime!.date)}) this hurt {lastTime!.pain}/10 during. If one exercise was the culprit, try its easier variation below or skip it.
+          </p>
+        )}
         {s.mode !== 'rest' && (
           <Button full size="lg" className="mt-4" icon={<Play size={18} />} onClick={() => setPlaying(true)}>
             Start {s.mode === 'walk' ? 'walk timer' : 'session'}
@@ -146,6 +179,7 @@ export default function Workout({ id }: { id: string }) {
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card2 text-[12px] font-bold text-ink3">{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[15px] font-medium">{ex.name}</div>
+                      {it.from && <div className="acc-de truncate text-[12px] font-medium text-acc">instead of {EX[it.from].name}</div>}
                       <div className="text-[12.5px] text-ink3">
                         {straight && it.range
                           ? `${it.sets} × ${it.range[0]}–${it.range[1]} ${it.unit === 'sec' ? 's' : 'reps'}${it.perSide ? ' each side' : ''} · rest ${it.rest}s`
@@ -213,8 +247,8 @@ export default function Workout({ id }: { id: string }) {
   )
 }
 
-function Player({ session, phase, onExit }: { session: Session; phase: number; onExit: () => void }) {
-  const steps = useMemo(() => buildSteps(session, phase), [session, phase])
+function Player({ session, phase, easy, onExit }: { session: Session; phase: number; easy: boolean; onExit: () => void }) {
+  const steps = useMemo(() => buildSteps(session, phase, easy), [session, phase, easy])
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
   const [left, setLeft] = useState(steps[0]?.sec ?? 0)
@@ -231,7 +265,8 @@ function Player({ session, phase, onExit }: { session: Session; phase: number; o
   const straight = session.layout === 'straight'
 
   const lastSet = step?.exId && step.setNo ? lastBy.get(step.exId)?.[0]?.reps[step.setNo - 1] : undefined
-  const target = step?.range ? Math.min(step.range[1], Math.max(step.range[0], (lastSet ?? step.range[0] - 1) + 1)) : step?.reps ?? 0
+  // easy day: the bottom of the range, never a push for progress
+  const target = step?.range ? (easy ? step.range[0] : Math.min(step.range[1], Math.max(step.range[0], (lastSet ?? step.range[0] - 1) + 1))) : step?.reps ?? 0
 
   // keep the screen awake while training
   useEffect(() => {
@@ -297,12 +332,12 @@ function Player({ session, phase, onExit }: { session: Session; phase: number; o
   }
 
   const minutes = Math.max(1, Math.round((Date.now() - started.current) / 60000))
-  if (finished || !step) return <Finish session={session} minutes={minutes} kg={kg} logged={logged} lastBy={lastBy} onDone={onExit} />
+  if (finished || !step) return <Finish session={session} easy={easy} minutes={minutes} kg={kg} logged={logged} lastBy={lastBy} onDone={onExit} />
 
   const ex = step.exId ? EX[step.exId] : undefined
   const workIdx = steps.filter((x, k) => x.kind === 'work' && k <= i).length
   const workTotal = steps.filter((x) => x.kind === 'work').length
-  const rounds = sessionParams(session, phase).rounds
+  const rounds = sessionParams(session, phase, easy).rounds
   const exCount = straight ? new Set(steps.map((x) => x.idx)).size : 0
   const lastLift = step.exId ? lastBy.get(step.exId)?.[0] : undefined
 
@@ -352,7 +387,9 @@ function Player({ session, phase, onExit }: { session: Session; phase: number; o
         {straight && step.kind === 'work' && step.reps !== undefined && (
           <div className="mt-5 flex flex-col items-center gap-2">
             <Stepper value={repsNow} onChange={setRepsNow} min={0} max={60} format={(v) => `${v} done`} />
-            <div className="text-[13px] text-ink3">{lastSet !== undefined ? `Last time: ${lastSet} · aim for ${target}` : `Aim for ${target}+ with 1–3 reps left in the tank`}</div>
+            <div className="text-[13px] text-ink3">
+              {easy ? `Easy day · about ${target}, with 3–4 reps left in the tank` : lastSet !== undefined ? `Last time: ${lastSet} · aim for ${target}` : `Aim for ${target}+ with 1–3 reps left in the tank`}
+            </div>
           </div>
         )}
         {ex && step.kind === 'work' && !straight && <p className="mt-6 max-w-sm text-[14.5px] leading-relaxed text-ink2">{ex.cue ?? ex.how[0]}</p>}
@@ -398,6 +435,7 @@ function Player({ session, phase, onExit }: { session: Session; phase: number; o
 
 function Finish({
   session,
+  easy,
   minutes,
   kg,
   logged,
@@ -405,6 +443,7 @@ function Finish({
   onDone,
 }: {
   session: Session
+  easy: boolean
   minutes: number
   kg: number
   logged: Record<string, number[]>
@@ -418,7 +457,7 @@ function Finish({
   const kcal = metKcal(session.met, kg, mins)
   const entries = Object.entries(logged).filter(([, v]) => v.length)
   const bests = entries
-    .filter(([exId]) => EX[exId]?.unit === 'reps')
+    .filter(([exId]) => !easy && EX[exId]?.unit === 'reps')
     .map(([exId, reps]) => {
       const prev = lastBy.get(exId) ?? []
       const prevBest = Math.max(0, ...prev.map((p) => p.reps.reduce((a, b) => a + b, 0)))
@@ -430,9 +469,9 @@ function Finish({
   function save() {
     const date = dkey()
     const kind: Activity['kind'] = session.kind === 'mobility' || session.kind === 'flare' ? 'mobility' : session.kind === 'walk' ? 'walk' : 'workout'
-    put<Activity>('activity', { date, kind, session: session.id, title: session.name, minutes: mins, met: session.met, kcal, rpe, pain })
+    put<Activity>('activity', { date, kind, session: session.id, title: easy ? `${session.name} (easy)` : session.name, minutes: mins, met: session.met, kcal, rpe, pain, easy: easy || undefined })
     for (const [exId, reps] of entries) {
-      put<Lift>('lifts', { date, session: session.id, exId, reps, unit: EX[exId]?.unit ?? 'reps', kg: session.equipment === 'dumbbells' ? settings.training?.dumbbellKg : undefined })
+      put<Lift>('lifts', { date, session: session.id, exId, reps, unit: EX[exId]?.unit ?? 'reps', kg: session.equipment === 'dumbbells' ? settings.training?.dumbbellKg : undefined, easy: easy || undefined })
     }
     toast(`${session.name.split(' · ')[0]} logged · +${kcal} kcal 💪`)
     onDone()
@@ -481,7 +520,11 @@ function Finish({
       <Field label={`How hard was it? ${rpe}/10`} className="mt-4">
         <Slider label="Effort" min={1} max={10} value={rpe} onChange={setRpe} left="easy" right="max" />
       </Field>
-      <Field label={`Pain during: ${pain}/10`} className="mt-4" hint="Tracking this shows which exercises your back likes — and which it doesn't.">
+      <Field
+        label={`Pain during: ${pain}/10`}
+        className="mt-4"
+        hint={pain >= 6 ? 'That’s past the comfortable zone — if it’s still up tomorrow morning, Forme suggests the easy version.' : 'Tracking this shows which exercises your back likes — and which it doesn’t.'}
+      >
         <Slider label="Pain" min={0} max={10} value={pain} onChange={setPain} left="none" right="worst" />
       </Field>
     </Sheet>

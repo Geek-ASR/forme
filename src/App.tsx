@@ -17,6 +17,8 @@ import Body from './screens/body/Body'
 import Food from './screens/body/Food'
 import AddFood from './screens/body/AddFood'
 import Foods from './screens/body/Foods'
+import MealPlan from './screens/body/MealPlan'
+import Grocery from './screens/body/Grocery'
 import Move from './screens/body/Move'
 import Plan from './screens/body/Plan'
 import Workout from './screens/body/Workout'
@@ -33,6 +35,7 @@ import Loop from './screens/hybrid/Loop'
 import Deutsch from './screens/deutsch/Deutsch'
 import Review from './screens/deutsch/Review'
 import Sprint from './screens/deutsch/Sprint'
+import Speak from './screens/deutsch/Speak'
 import Grammar from './screens/deutsch/Grammar'
 import Words from './screens/deutsch/Words'
 import Me from './screens/me/Me'
@@ -61,6 +64,8 @@ const ROUTES: R[] = [
   ['/body/food', () => <Food />],
   ['/body/food/add', () => <AddFood />],
   ['/body/foods', () => <Foods />],
+  ['/body/meals', () => <MealPlan />],
+  ['/body/grocery', () => <Grocery />],
   ['/body/move', () => <Move />],
   ['/body/plan', () => <Plan />],
   ['/body/workout/:id', (p) => <Workout id={p.id} />],
@@ -83,6 +88,7 @@ const ROUTES: R[] = [
   ['/deutsch', () => <Deutsch />],
   ['/deutsch/review', () => <Review />],
   ['/deutsch/sprint', () => <Sprint />],
+  ['/deutsch/speak', () => <Speak />],
   ['/deutsch/grammar', () => <Grammar />],
   ['/deutsch/words', () => <Words />],
   ['/me', () => <Me />],

@@ -30,6 +30,11 @@ export function CheckIn({ date, day, compact }: { date: string; day?: Day; compa
           {day.pain !== undefined && <Pill tone={day.pain >= 7 ? 'bad' : 'muted'}>Pain {day.pain}/10</Pill>}
           {day.stiffMin !== undefined && <Pill tone="muted">Stiff {day.stiffMin >= 120 ? '2h+' : `${day.stiffMin} min`}</Pill>}
           {day.sleepH !== undefined && <Pill tone="muted">Slept {day.sleepH} h</Pill>}
+          {day.pain === undefined && (
+            <button onClick={() => setEditing(true)} className="press text-[12.5px] font-semibold text-acc">
+              + pain &amp; stiffness
+            </button>
+          )}
         </div>
       </Card>
     )
@@ -43,7 +48,11 @@ export function CheckIn({ date, day, compact }: { date: string; day?: Day; compa
             key={m}
             aria-label={MOOD_WORD[m]}
             aria-pressed={day?.mood === m}
-            onClick={() => patchDay(date, { mood: m })}
+            onClick={() => {
+              // first answer of the day: keep going to pain and stiffness — today's workout adapts to them
+              if (!done) setEditing(true)
+              patchDay(date, { mood: m })
+            }}
             className={cx('press flex h-14 w-14 flex-col items-center justify-center rounded-2xl text-[26px]', day?.mood === m ? 'bg-acc-soft ring-2 ring-acc' : 'bg-card2')}
           >
             {moodEmoji(m)}

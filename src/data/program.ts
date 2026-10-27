@@ -205,45 +205,78 @@ export type ResolvedItem = {
   range?: [number, number]
   rest?: number
   tempo?: string
+  from?: string // the exercise this one stands in for (easy version)
 }
 
-export function resolveItems(s: Session, phase: number): ResolvedItem[] {
+/**
+ * The easy version, for sore or stiff days (NASS: in a flare keep moving — little and often, lower
+ * intensity, nothing high-impact). Swaps take load off the spine and drop deep loaded flexion and
+ * anything ballistic. A swap must measure the same way (reps vs seconds) unless the session is timed.
+ */
+export const EASY_SWAP: Record<string, string> = {
+  'goblet-squat': 'chair-squat', squat: 'chair-squat', 'tempo-squat': 'chair-squat', 'split-squat': 'chair-squat',
+  bss: 'split-squat', 'db-reverse-lunge': 'reverse-lunge',
+  'db-rdl': 'hinge', 'sl-rdl': 'hinge', 'backpack-rdl': 'hinge',
+  'sl-hip-thrust': 'db-hip-thrust', 'sl-bridge': 'glute-bridge', 'hip-thrust': 'glute-bridge',
+  pushup: 'incline-pushup', 'close-pushup': 'incline-pushup', 'knee-pushup': 'incline-pushup', 'pike-pushup': 'incline-pushup',
+  'weighted-dead-bug': 'dead-bug', 'reverse-crunch': 'bird-dog', 'hollow-hold': 'dead-bug',
+  plank: 'plank-knee', 'side-plank': 'side-plank-knee',
+  skater: 'march', 'step-jack': 'march', 'heel-tap': 'march', 'front-kick': 'shadow-box',
+}
+
+/** Mobility and flare care are already gentle — the easy version leaves them alone. */
+const softens = (s: Session, easy: boolean) => easy && s.kind !== 'mobility' && s.kind !== 'flare'
+
+export function resolveItems(s: Session, phase: number, easy = false): ResolvedItem[] {
+  const soft = softens(s, easy)
   return s.items.map((b) => {
-    const exId = Array.isArray(b.ex) ? at(b.ex, phase, b.ex[0]) : b.ex
+    let exId = Array.isArray(b.ex) ? at(b.ex, phase, b.ex[0]) : b.ex
+    let from: string | undefined
+    const alt = soft ? EASY_SWAP[exId] : undefined
+    if (alt && EX[alt] && (s.mode === 'interval' || EX[alt].unit === EX[exId].unit)) {
+      from = exId
+      exId = alt
+    }
     const ex = EX[exId]
-    if (s.mode === 'interval') return { exId, amt: at(s.work, phase, 30), unit: 'sec', perSide: false }
+    if (s.mode === 'interval') return { exId, amt: Math.round(at(s.work, phase, 30) * (soft ? 0.75 : 1)), unit: 'sec', perSide: false, from }
     if (s.layout === 'straight' && b.range) {
+      const sets = at(b.sets, phase, 3)
       return {
         exId,
-        amt: ex.unit === 'sec' ? (phase <= 2 ? b.range[0] : b.range[1]) : b.range[0],
+        amt: ex.unit === 'sec' ? (phase <= 2 || soft ? b.range[0] : b.range[1]) : b.range[0],
         unit: ex.unit,
         perSide: !!ex.perSide,
-        sets: at(b.sets, phase, 3),
+        sets: soft ? Math.max(1, sets - 1) : sets,
         range: b.range,
-        rest: b.rest ?? 60,
+        rest: (b.rest ?? 60) + (soft ? 30 : 0),
         tempo: b.tempo,
+        from,
       }
     }
-    return { exId, amt: at(b.amt, phase, 10), unit: ex.unit, perSide: !!ex.perSide }
+    const amt = at(b.amt, phase, 10)
+    return { exId, amt: soft ? Math.max(3, Math.round(amt * 0.75)) : amt, unit: ex.unit, perSide: !!ex.perSide, from }
   })
 }
 
-export function sessionParams(s: Session, phase: number) {
+export function sessionParams(s: Session, phase: number, easy = false) {
+  const soft = softens(s, easy)
+  const rounds = at(s.rounds, phase, 1)
+  const walkMin = at(s.walkMin, phase, 30)
   return {
-    rounds: at(s.rounds, phase, 1),
-    rest: at(s.rest, phase, 20),
+    rounds: soft && rounds > 1 ? rounds - 1 : rounds,
+    rest: at(s.rest, phase, 20) + (soft ? 10 : 0),
     roundRest: s.roundRest ?? 60,
-    work: at(s.work, phase, 30),
-    walkMin: at(s.walkMin, phase, 30),
+    work: Math.round(at(s.work, phase, 30) * (soft ? 0.75 : 1)),
+    walkMin: soft ? Math.max(15, Math.round((walkMin * 0.67) / 5) * 5) : walkMin,
   }
 }
 
 /** Rough duration in minutes */
-export function sessionMinutes(s: Session, phase: number): number {
-  const p = sessionParams(s, phase)
+export function sessionMinutes(s: Session, phase: number, easy = false): number {
+  const p = sessionParams(s, phase, easy)
   if (s.mode === 'walk') return p.walkMin
   if (s.mode === 'rest') return 0
-  const items = resolveItems(s, phase)
+  const items = resolveItems(s, phase, easy)
   if (s.layout === 'straight') {
     let sec = 0
     for (const it of items) {

@@ -24,6 +24,7 @@ type Recognition = {
   lang: string
   interimResults: boolean
   continuous: boolean
+  maxAlternatives: number
   start(): void
   stop(): void
   onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null
@@ -62,6 +63,39 @@ export function listen(onText: (text: string, final: boolean) => void, onEnd: (e
   r.onend = () => onEnd()
   r.start()
   return () => r.stop()
+}
+
+/**
+ * One spoken sentence → the recogniser's top guesses (up to 5, best first), for checking pronunciation.
+ * Interim text streams to `onInterim`. Never rejects: failures come back as `error`.
+ */
+export function recognize(lang: string, onInterim?: (text: string) => void): { done: Promise<{ texts: string[]; error?: string }>; stop: () => void } {
+  const C = ctor()
+  if (!C) return { done: Promise.resolve({ texts: [], error: 'unsupported' }), stop: () => {} }
+  const r = new C()
+  r.lang = lang
+  r.interimResults = true
+  r.continuous = false
+  r.maxAlternatives = 5
+  let texts: string[] = []
+  let error: string | undefined
+  const done = new Promise<{ texts: string[]; error?: string }>((resolve) => {
+    r.onresult = (e) => {
+      const n = e.results.length
+      const before = Array.from({ length: n - 1 }, (_, i) => e.results[i][0].transcript).join(' ')
+      const last = e.results[n - 1]
+      if (last.isFinal) texts = Array.from({ length: last.length }, (_, j) => `${before} ${last[j].transcript}`.trim())
+      else onInterim?.(`${before} ${last[0].transcript}`.trim())
+    }
+    r.onerror = (e) => (error = e.error)
+    r.onend = () => resolve({ texts, error: texts.length ? undefined : error ?? 'no-speech' })
+  })
+  try {
+    r.start()
+  } catch {
+    return { done: Promise.resolve({ texts: [], error: 'busy' }), stop: () => {} }
+  }
+  return { done, stop: () => r.stop() }
 }
 
 /** Short beep for workout timers (WebAudio, no assets) */
