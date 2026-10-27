@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { buzz } from '../lib/speech'
 
 const STAR = 'M12 2.5l2.94 5.96 6.58.96-4.76 4.64 1.12 6.55L12 17.52l-5.88 3.09 1.12-6.55L2.48 9.42l6.58-.96z'
-const GOLD = '#f5b000'
+const GOLD = 'var(--star)'
 
 function Star({ fill, size }: { fill: number; size: number }) {
   return (

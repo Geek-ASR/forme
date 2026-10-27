@@ -47,7 +47,7 @@ export default function Connect({ error: initialError, onDone }: { error?: strin
     <div className="acc-today safe-top min-h-dvh pb-16">
       <div className="mx-auto max-w-md px-5 pt-10">
         <img src="./favicon.svg" alt="" width={64} height={64} className="rounded-[20px] shadow-lg" />
-        <h1 className="mt-5 text-[34px] font-bold leading-tight tracking-tight">Forme</h1>
+        <h1 className="font-display mt-5 text-[38px] font-semibold leading-tight">Forme</h1>
         <p className="mt-2 text-[16px] leading-relaxed text-ink2">
           A private space to take care of yourself — body, mind, words, German and the worlds you are building.
         </p>

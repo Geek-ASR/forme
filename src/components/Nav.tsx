@@ -12,10 +12,13 @@ const TABS = [
 const IMMERSIVE = [/^\/(evening|log|share)$/, /^\/body\/workout\//, /^\/body\/food\/add/, /^\/deutsch\/(review|sprint|speak)/, /^\/mind\/(new|edit)/, /^\/hybrid\/(new|edit)/, /^\/ratings\/(new|edit)/]
 export const hideNavFor = (path: string) => IMMERSIVE.some((r) => r.test(path))
 
+/** A floating espresso dock: the current tab is lit in champagne gold. */
 export function BottomNav({ path }: { path: string }) {
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/90 backdrop-blur-xl" aria-label="Main">
-      <div className="mx-auto flex max-w-xl">
+    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3" style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom))' }} aria-label="Main">
+      {/* page fades out under the dock, so content never peeks around it */}
+      <div className="absolute inset-x-0 bottom-0 h-[calc(100%+18px)] bg-gradient-to-t from-page from-35% to-transparent" />
+      <div className="pointer-events-auto relative mx-auto flex max-w-md gap-1 rounded-[26px] border border-[var(--dock-line)] bg-[var(--dock)] p-1.5 shadow-[0_14px_30px_-12px_rgba(26,16,9,0.55)] backdrop-blur-xl">
         {TABS.map(({ key, href, label, Icon, match }) => {
           const active = match(path)
           return (
@@ -23,11 +26,12 @@ export function BottomNav({ path }: { path: string }) {
               key={key}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className={cx('press flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-semibold', active ? 'text-ink' : 'text-ink3')}
+              className={cx(
+                'press flex h-[54px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[10.5px] font-semibold tracking-wide transition-colors',
+                active ? 'bg-[var(--dock-pill)] text-[var(--dock-on)]' : 'text-[var(--dock-ink)]',
+              )}
             >
-              <span className={cx('flex h-8 w-14 items-center justify-center rounded-full transition-colors', active && 'bg-card2')}>
-                <Icon size={21} strokeWidth={active ? 2.4 : 2} />
-              </span>
+              <Icon size={21} strokeWidth={active ? 2.3 : 1.9} />
               {label}
             </a>
           )

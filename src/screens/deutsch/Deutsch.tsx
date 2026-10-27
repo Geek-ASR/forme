@@ -62,9 +62,9 @@ export default function Deutsch() {
       {g.goalLabel && goalDays !== null ? (
         <Card className="mt-1 overflow-hidden" pad={false} onClick={editGoal}>
           <div className="flex h-1.5">
-            <span className="flex-1 bg-[#3a3a37]" />
-            <span className="flex-1 bg-[#d03b3b]" />
-            <span className="flex-1 bg-[#eda100]" />
+            <span className="flex-1 bg-[#3b2a1f]" />
+            <span className="flex-1 bg-[var(--die-fill)]" />
+            <span className="flex-1 bg-[var(--das-fill)]" />
           </div>
           <div className="p-4">
             <div className="text-[12px] font-semibold uppercase tracking-wide text-acc">🇩🇪 Goal</div>
@@ -167,7 +167,7 @@ export default function Deutsch() {
 
       <Section title="Minutes · last 7 days">
         <Card>
-          <Columns data={week} target={settings.targets.germanMinutes} highlight={today} unit="min" label="German minutes per day" color="var(--s2)" />
+          <Columns data={week} target={settings.targets.germanMinutes} highlight={today} unit="min" label="German minutes per day" color="var(--s3)" />
         </Card>
       </Section>
 

@@ -127,26 +127,26 @@ export default function Today() {
       title={`${greeting()}${name ? `, ${name}` : ''}`}
       actions={<SyncBadge />}
     >
-      <a href="#/challenge" className="press mt-1 block px-1">
-        <div className="flex items-center justify-between gap-3 text-[13px] text-ink3">
-          <span className="min-w-0 truncate">
-            {c.before ? (
-              <>
-                120-day challenge starts <b className="text-ink">{fmtDay(c.start)}</b>
-              </>
-            ) : c.after ? (
-              <>
-                120-day challenge <b className="text-ink">complete</b> 🎉
-              </>
-            ) : (
-              <>
-                Day <b className="text-ink">{c.dayNo}</b> of 120 · Week {d.program.week} · {d.program.phase.name}
-              </>
-            )}
-          </span>
-          <span className="shrink-0 font-semibold text-acc">Challenge</span>
+      <a href="#/challenge" className="hero press mt-2 block overflow-hidden rounded-3xl px-4 pb-3.5 pt-4">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-hero-gold">120-day challenge</div>
+            <div className="font-display mt-0.5 truncate text-[25px] font-semibold leading-tight">
+              {c.before ? `Starts ${fmtDay(c.start)}` : c.after ? 'All 120 days done 🎉' : `Day ${c.dayNo} of 120`}
+            </div>
+            <div className="mt-0.5 truncate text-[13px] text-hero-ink2">
+              {c.before ? 'Get your starting line ready' : c.after ? 'See how far you came' : `Week ${d.program.week} · ${d.program.phase.name}`}
+            </div>
+          </div>
+          <ChevronRight size={20} className="shrink-0 text-hero-ink2" />
         </div>
-        <Bar className="mt-2" value={c.before ? 0 : Math.min(c.dayNo, 120)} max={120} height={5} />
+        <Bar className="mt-3" value={c.before ? 0 : Math.min(c.dayNo, 120)} max={120} height={6} color="var(--sheen)" track="var(--hero-track)" />
+        {!c.before && !c.after && (
+          <div className="mt-1.5 flex justify-between text-[11.5px] text-hero-ink2">
+            <span>{c.left} days to go</span>
+            <span>Finish {fmtDay(c.finish)}</span>
+          </div>
+        )}
       </a>
 
       <PhoneSetup />
@@ -538,7 +538,7 @@ export default function Today() {
           <div className="text-[12px] font-semibold uppercase tracking-wide text-acc">Wort des Tages</div>
           <div className="mt-1.5 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[22px] font-semibold leading-tight">
+              <div className="font-display text-[24px] font-semibold leading-tight">
                 {word.art && <span className={ART_COLOR[word.art]}>{word.art} </span>}
                 {word.de}
               </div>

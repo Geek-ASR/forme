@@ -31,7 +31,7 @@ export function Toasts() {
           <span className="flex-1">{t.text}</span>
           {t.action && (
             <button
-              className="font-semibold text-[var(--heat1)]"
+              className="font-semibold text-[var(--toast-act)]"
               onClick={() => {
                 t.action!.run()
                 toasts = toasts.filter((x) => x.id !== t.id)

@@ -67,24 +67,24 @@ export default function Hybrid() {
   return (
     <Page accent="hybrid" back="/mind" title="The Hybrid World">
       <div className="starfield mt-1 overflow-hidden rounded-3xl p-5">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#9fe7dc]">Writer's notebook</div>
-        <div className="mt-1 font-serif text-[28px] leading-tight">The Hybrid World</div>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-white/75">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-hero-gold">Writer's notebook</div>
+        <div className="font-display mt-1 text-[30px] font-semibold leading-tight">The Hybrid World</div>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-hero-ink2">
           <span>{notes.length} notes</span>
           <span>{questions.length} unresolved</span>
           <span>{inbox.length} ideas in inbox</span>
         </div>
-        <div className="mt-4 rounded-2xl bg-white/10 p-1.5 backdrop-blur">
+        <div className="mt-4 rounded-2xl bg-[#fff4de]/10 p-1.5 backdrop-blur">
           <textarea
             rows={2}
             value={capture}
             onChange={(e) => setCapture(e.target.value)}
             placeholder="Capture an idea before it disappears…"
-            className="w-full resize-none bg-transparent px-2.5 py-1.5 font-serif text-[16px] text-white outline-none placeholder:text-white/50"
+            className="w-full resize-none bg-transparent px-2.5 py-1.5 font-serif text-[16px] text-hero-ink outline-none placeholder:text-hero-ink/50"
             aria-label="Capture an idea"
           />
           <div className="flex justify-end">
-            <button onClick={quickCapture} disabled={!capture.trim()} className="press flex items-center gap-1.5 rounded-xl bg-[#5fd8c4] px-3 py-1.5 text-[13px] font-bold text-[#06231f] disabled:opacity-40">
+            <button onClick={quickCapture} disabled={!capture.trim()} className="press flex items-center gap-1.5 rounded-xl bg-hero-gold px-3 py-1.5 text-[13px] font-bold text-[#22170f] disabled:opacity-40">
               <Send size={14} /> Capture
             </button>
           </div>

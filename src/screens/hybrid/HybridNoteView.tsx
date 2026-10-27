@@ -65,7 +65,7 @@ export default function HybridNoteView({ id }: { id: string }) {
           {n.ref && <span className="font-mono font-bold text-acc">{n.ref}</span>}
           {n.ideaNo && <span className="font-mono">I-{String(n.ideaNo).padStart(3, '0')}</span>}
         </div>
-        <h1 className="mt-2 text-[24px] font-bold leading-tight">{n.title}</h1>
+        <h1 className="font-display mt-2 text-[26px] font-semibold leading-tight">{n.title}</h1>
         {n.body && <div className="prose-forme mt-4" dangerouslySetInnerHTML={{ __html: renderMarkdown(n.body) }} />}
         {n.why && (
           <Section title="Why it is interesting">

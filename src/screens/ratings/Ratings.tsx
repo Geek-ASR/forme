@@ -170,7 +170,7 @@ export default function Ratings() {
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
                   <span className="truncate text-[15.5px] font-semibold">{r.title}</span>
-                  {r.fav && <Heart size={13} className="shrink-0 fill-current text-[#e34948]" aria-label="Favourite" />}
+                  {r.fav && <Heart size={13} className="shrink-0 fill-current text-fav" aria-label="Favourite" />}
                 </span>
                 <span className="block truncate text-[12.5px] text-ink3">{[r.by, r.year, r.where].filter(Boolean).join(' · ') || c.label}</span>
                 {r.status === 'done' ? (

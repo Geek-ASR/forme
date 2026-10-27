@@ -64,7 +64,7 @@ function PostView({ slug }: { slug: string }) {
   return (
     <article className="mt-6">
       <div className="text-[13px] text-ink3">{fmtLong(p.date)}</div>
-      {p.type !== 'quote' && <h1 className="mt-2 text-[30px] font-bold leading-tight tracking-tight">{p.title}</h1>}
+      {p.type !== 'quote' && <h1 className="font-display mt-2 text-[31px] font-semibold leading-tight">{p.title}</h1>}
       <div className="prose-forme mt-6" dangerouslySetInnerHTML={{ __html: renderMarkdown(p.body) }} />
       <a href="#/blog" className="mt-10 inline-block text-[14px] font-semibold text-acc">
         ← All writing

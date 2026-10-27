@@ -38,7 +38,7 @@ export default function Me() {
     <Page accent="me" subtitle="Know yourself" title={profile.name || 'Me'} actions={<SyncBadge />}>
       <Card className="mt-2">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-acc-soft text-[26px] font-bold text-acc">{(profile.name || 'M').slice(0, 1)}</div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-acc-soft font-display text-[28px] font-semibold text-acc">{(profile.name || 'M').slice(0, 1)}</div>
           <div className="min-w-0 flex-1 text-[14px] leading-relaxed text-ink2">
             <div>
               {profile.birth ? `${ageOn(profile.birth)} years · ` : ''}

@@ -192,7 +192,7 @@ export default function Workout({ id }: { id: string }) {
                       )}
                     </div>
                     {ready && (
-                      <span className="flex items-center gap-1 rounded-full bg-[#0ca30c]/15 px-2 py-0.5 text-[11.5px] font-semibold text-good">
+                      <span className="flex items-center gap-1 rounded-full bg-good-mark/15 px-2 py-0.5 text-[11.5px] font-semibold text-good">
                         <TrendingUp size={12} /> progress
                       </span>
                     )}
@@ -213,7 +213,7 @@ export default function Workout({ id }: { id: string }) {
                       )}
                       {ex.spine && <p className="mt-2 rounded-2xl bg-acc-soft px-3 py-2 text-[13.5px] text-ink">🦴 {ex.spine}</p>}
                       {ready && (
-                        <p className="mt-2 rounded-2xl bg-[#0ca30c]/10 px-3 py-2 text-[13.5px] text-ink">
+                        <p className="mt-2 rounded-2xl bg-good-mark/10 px-3 py-2 text-[13.5px] text-ink">
                           You hit the top of the range on every set last time. Next step on the ladder: slower lowering → 1½ reps → the harder variation → an extra set.
                         </p>
                       )}
@@ -363,7 +363,7 @@ function Player({ session, phase, easy, onExit }: { session: Session; phase: num
                 ? `Set ${step.setNo} of ${step.sets}${step.range ? ` · ${step.range[0]}–${step.range[1]} ${step.sec ? 's' : 'reps'}` : ''}`
                 : `Round ${step.round} of ${rounds}`}
         </div>
-        <div className="mt-2 text-[30px] font-bold leading-tight">{step.label}</div>
+        <div className="font-display mt-2 text-[30px] font-semibold leading-tight">{step.label}</div>
         {step.note && <div className="mt-1 text-[16px] font-medium text-ink2">{step.note}</div>}
         {step.kind === 'work' && step.tempo && <div className="mt-1 text-[14px] font-semibold text-acc">{step.tempo}</div>}
 
@@ -492,7 +492,7 @@ function Finish({
     >
       <div className="py-2 text-center text-[44px]">{bests.length ? '🏆' : '🎉'}</div>
       {bests.length > 0 && (
-        <div className="mb-4 rounded-2xl bg-[#0ca30c]/10 p-3 text-[14px]">
+        <div className="mb-4 rounded-2xl bg-good-mark/10 p-3 text-[14px]">
           <div className="font-semibold text-good">New personal bests</div>
           {bests.map((b) => (
             <div key={b.exId} className="text-ink2">

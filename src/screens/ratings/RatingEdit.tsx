@@ -61,7 +61,7 @@ export default function RatingEdit({ id }: { id?: string }) {
         value={r.title ?? ''}
         onChange={(e) => set({ title: e.target.value })}
         placeholder={TITLE_HINT[r.cat ?? ''] ?? 'Title'}
-        className="mt-4 w-full bg-transparent text-[26px] font-bold leading-tight outline-none placeholder:text-ink3/50"
+        className="font-display mt-4 w-full bg-transparent text-[27px] font-semibold leading-tight outline-none placeholder:text-ink3/50"
         aria-label="Title"
       />
 
@@ -85,7 +85,7 @@ export default function RatingEdit({ id }: { id?: string }) {
         <button
           onClick={() => set({ fav: !r.fav || undefined })}
           aria-pressed={!!r.fav}
-          className={cx('press flex h-12 items-center justify-center gap-2 rounded-2xl border text-[14.5px] font-semibold', r.fav ? 'border-transparent bg-[#e34948]/12 text-[#e34948]' : 'border-line2 text-ink2')}
+          className={cx('press flex h-12 items-center justify-center gap-2 rounded-2xl border text-[14.5px] font-semibold', r.fav ? 'border-transparent bg-fav/12 text-fav' : 'border-line2 text-ink2')}
         >
           <Heart size={17} className={r.fav ? 'fill-current' : ''} /> Favourite
         </button>

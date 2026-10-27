@@ -84,7 +84,7 @@ export function intervalLabel(prev: SrsState | undefined, grade: Grade): string 
   return '1y'
 }
 
-/** Classic learner colours: der blue, die red, das green (theme-aware tokens). */
+/** Article colours: der mocha, die amber, das gold (theme-aware tokens). */
 export const ART_COLOR: Record<string, string> = {
   der: 'text-der',
   die: 'text-die',

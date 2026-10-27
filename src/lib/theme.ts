@@ -14,7 +14,7 @@ export function applyTheme(pref = getTheme()) {
   if (pref === 'auto') delete root.dataset.theme
   else root.dataset.theme = pref
   const dark = pref === 'dark' || (pref === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#0d0d0d' : '#f4f3ef'))
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#140f0b' : '#f6efe5'))
 }
 
 export function setTheme(pref: ThemePref) {

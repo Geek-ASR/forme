@@ -11,7 +11,7 @@ import { all, put } from '../../lib/store'
 import type { CustomWord, DeLog, SrsState } from '../../lib/types'
 
 const ARTS = ['der', 'die', 'das'] as const
-const BTN: Record<string, string> = { der: 'bg-[#2a78d6] text-white', die: 'bg-[#d03b3b] text-white', das: 'bg-[#008300] text-white' }
+const BTN: Record<string, string> = { der: 'art-der', die: 'art-die', das: 'art-das' }
 const SECONDS = 60
 const bestKey = (lvl: string) => `forme.sprint.best.${lvl}`
 
@@ -148,7 +148,7 @@ export default function Sprint() {
       {phase === 'ready' && (
         <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 text-center">
           <div className="text-[44px]">⚡</div>
-          <h1 className="mt-2 text-[28px] font-bold">der · die · das</h1>
+          <h1 className="font-display mt-2 text-[30px] font-semibold">der · die · das</h1>
           <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-ink2">
             60 seconds. Tap the right article for each noun ({pool.length} nouns up to {level}). Mistakes can go straight into your review.
           </p>
@@ -162,7 +162,7 @@ export default function Sprint() {
       {phase === 'play' && card && (
         <>
           <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 text-center">
-            <div className={cx('text-[44px] font-bold leading-tight transition-colors', flash ? (flash.ok ? 'text-good' : 'text-bad') : '')}>
+            <div className={cx('font-display text-[46px] font-semibold leading-tight transition-colors', flash ? (flash.ok ? 'text-good' : 'text-bad') : '')}>
               {flash && <span>{flash.art} </span>}
               {card.d}
             </div>
@@ -181,7 +181,7 @@ export default function Sprint() {
       {phase === 'done' && (
         <div className="mx-auto w-full max-w-xl flex-1 overflow-y-auto px-5 pt-8 pb-10 text-center">
           <div className="text-[44px]">{score > best ? '🏆' : '✨'}</div>
-          <h1 className="mt-1 text-[30px] font-bold">{score} correct</h1>
+          <h1 className="font-display mt-1 text-[32px] font-semibold">{score} correct</h1>
           <p className="mt-1 text-[14.5px] text-ink3">
             {answered.current} answered · {score > best ? 'new best!' : `best ${best}`}
           </p>

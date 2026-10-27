@@ -111,7 +111,7 @@ export default function Spine() {
               avg stiffness <b className="text-ink">{stiffAvg !== null ? Math.round(stiffAvg) : '–'}</b> min
             </span>
           </div>
-          <Columns data={painCols} highlight={date} unit="/ 10" label="Pain scores for the last 14 days" color="var(--s2)" />
+          <Columns data={painCols} highlight={date} unit="/ 10" label="Pain scores for the last 14 days" color="var(--s1)" />
         </Card>
       </Section>
 
@@ -133,7 +133,7 @@ export default function Spine() {
                 target={4}
                 unit="BASDAI"
                 label="BASDAI scores over time"
-                color="var(--s2)"
+                color="var(--s1)"
               />
             </div>
           )}

@@ -14,6 +14,8 @@ import { patch, useColl, useDoc } from '../../lib/store'
 import type { Day, Product, ProductRole, Profile } from '../../lib/types'
 
 type Tab = 'today' | 'plan' | 'shelf' | 'guide'
+/** Breakouts as one amber ramp: clear → a few → many reads as more colour, more trouble. */
+const BREAKOUT: [string, string][] = [['var(--heat1)', 'clear'], ['var(--heat2)', 'a few'], ['var(--heat4)', 'many']]
 
 export default function Skin() {
   const { query } = useRoute()
@@ -187,13 +189,20 @@ function TodayTab({ products, onPlan }: { products: Product[]; onPlan: () => voi
                 key={k}
                 title={`${fmtLong(k)}: ${d?.skinBreakouts === undefined ? 'not logged' : ['clear', 'a few', 'many'][d.skinBreakouts]}`}
                 className="h-3 flex-1 rounded-full"
-                style={{ background: d?.skinBreakouts === undefined ? 'var(--heat0)' : d.skinBreakouts === 0 ? 'var(--heat1)' : d.skinBreakouts === 1 ? 'var(--mood2)' : 'var(--mood1)' }}
+                style={{ background: d?.skinBreakouts === undefined ? 'var(--heat0)' : BREAKOUT[d.skinBreakouts]?.[0] ?? 'var(--heat4)' }}
               />
             ))}
           </div>
           <div className="mt-1.5 flex justify-between text-[11.5px] text-ink3">
             <span>14 days ago</span>
-            <span>blue clear · pink a few · red many</span>
+            <span className="flex items-center gap-2.5">
+              {BREAKOUT.map(([c, l]) => (
+                <span key={l} className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ background: c }} />
+                  {l}
+                </span>
+              ))}
+            </span>
           </div>
         </Card>
       </Section>
@@ -422,7 +431,7 @@ function GuideTab({ products }: { products: Product[] }) {
         <div className="overflow-hidden rounded-3xl border border-line bg-card">
           {COMPAT.map((c) => (
             <div key={c.pair} className="flex gap-3 border-b border-line px-4 py-3 last:border-b-0">
-              <span className={cx('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold', c.ok === 'yes' ? 'bg-[#0ca30c]/15 text-good' : c.ok === 'separate' ? 'bg-acc-soft text-acc' : 'bg-bad/10 text-bad')}>
+              <span className={cx('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold', c.ok === 'yes' ? 'bg-good-mark/15 text-good' : c.ok === 'separate' ? 'bg-acc-soft text-acc' : 'bg-bad/10 text-bad')}>
                 {c.ok === 'yes' ? '✓' : c.ok === 'separate' ? '↔' : '!'}
               </span>
               <div>

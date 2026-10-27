@@ -51,9 +51,9 @@ export default function Mind() {
   return (
     <Page accent="mind" subtitle="Thoughts · views · philosophy" title="Mind" actions={<SyncBadge />}>
       <a href="#/hybrid" className="starfield press mt-2 block overflow-hidden rounded-3xl p-5">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#9fe7dc]">The book</div>
-        <div className="mt-1 font-serif text-[26px] leading-tight">The Hybrid World</div>
-        <div className="mt-1 text-[13.5px] text-white/75">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-hero-gold">The book</div>
+        <div className="font-display mt-1 text-[28px] font-semibold leading-tight">The Hybrid World</div>
+        <div className="mt-1 text-[13.5px] text-hero-ink2">
           {books.b1} · {books.b2} · {books.b3} — {hybrid.filter((h) => h.kind !== 'loop').length} notes · {openQuestions} unresolved
         </div>
       </a>

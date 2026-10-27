@@ -38,7 +38,7 @@ export function Page({
             >
               <ChevronLeft size={24} />
             </button>
-            <div className="min-w-0 flex-1 truncate text-[17px] font-semibold">{title}</div>
+            <div className="font-display min-w-0 flex-1 truncate text-[19px] font-semibold">{title}</div>
             <div className="flex items-center gap-1 pr-1">{actions}</div>
           </div>
         </div>
@@ -46,10 +46,10 @@ export function Page({
         <div className="safe-top">
           <div className={cx('mx-auto px-5 pb-2 pt-5', wide ? 'max-w-3xl' : 'max-w-xl')}>
             <div className="flex min-h-8 items-center justify-between gap-3">
-              <div className="min-w-0 truncate text-[13px] font-semibold uppercase tracking-wide text-acc">{subtitle}</div>
+              <div className="min-w-0 truncate text-[12.5px] font-semibold uppercase tracking-[0.12em] text-acc">{subtitle}</div>
               <div className="flex shrink-0 items-center gap-1">{actions}</div>
             </div>
-            {title && <h1 className="mt-1 text-[30px] font-bold leading-[1.15] tracking-tight">{title}</h1>}
+            {title && <h1 className="font-display mt-1 text-[32px] font-semibold leading-[1.1]">{title}</h1>}
           </div>
         </div>
       )}
@@ -82,7 +82,7 @@ export function Section({ title, action, children, className }: { title?: ReactN
     <section className={cx('mt-6', className)}>
       {(title || action) && (
         <div className="mb-2 flex items-center justify-between px-1">
-          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink3">{title}</h2>
+          <h2 className="text-[12.5px] font-semibold uppercase tracking-[0.12em] text-gold-ink">{title}</h2>
           {action}
         </div>
       )}
@@ -108,7 +108,7 @@ export function Button({ variant = 'primary', size = 'md', icon, full, loading, 
         size === 'sm' && 'h-9 px-3 text-[14px]',
         size === 'md' && 'h-11 px-4 text-[15px]',
         size === 'lg' && 'h-14 px-5 text-[16px]',
-        variant === 'primary' && 'bg-acc-fill text-acc-on',
+        variant === 'primary' && 'bg-acc-fill text-acc-on shadow-[0_8px_18px_-12px_var(--acc-fill)]',
         variant === 'soft' && 'bg-acc-soft text-acc',
         variant === 'ghost' && 'text-ink2 hover:bg-card2',
         variant === 'outline' && 'border border-line2 bg-card text-ink',
@@ -191,7 +191,7 @@ export function Ring({
   max,
   size = 120,
   stroke = 10,
-  color = 'var(--acc-fill)',
+  color = 'var(--acc-mark)',
   track = 'var(--acc-soft)',
   children,
   label,
@@ -230,7 +230,7 @@ export function Ring({
   )
 }
 
-export function Bar({ value, max, color = 'var(--acc-fill)', track = 'var(--track)', height = 8, className }: { value: number; max: number; color?: string; track?: string; height?: number; className?: string }) {
+export function Bar({ value, max, color = 'var(--acc-mark)', track = 'var(--track)', height = 8, className }: { value: number; max: number; color?: string; track?: string; height?: number; className?: string }) {
   const frac = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0
   return (
     <div className={cx('w-full overflow-hidden rounded-full', className)} style={{ height, background: track }}>
@@ -332,7 +332,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       onClick={() => onChange(!checked)}
       className={cx('press relative h-7 w-12 shrink-0 rounded-full transition-colors', checked ? 'bg-acc-fill' : 'bg-line2')}
     >
-      <span className={cx('absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
+      <span className={cx('absolute top-0.5 h-6 w-6 rounded-full bg-[#fffaf2] shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
     </button>
   )
 }
@@ -341,7 +341,7 @@ export function Empty({ icon, title, body, action }: { icon?: ReactNode; title: 
   return (
     <div className="flex flex-col items-center px-6 py-10 text-center">
       {icon && <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-acc-soft text-acc">{icon}</div>}
-      <div className="text-[17px] font-semibold">{title}</div>
+      <div className="font-display text-[20px] font-semibold">{title}</div>
       {body && <div className="mt-1 max-w-xs text-[14.5px] leading-relaxed text-ink3">{body}</div>}
       {action && <div className="mt-4">{action}</div>}
     </div>
@@ -403,15 +403,16 @@ export function List({ children, className }: { children: ReactNode; className?:
   return <div className={cx('divide-y divide-line overflow-hidden rounded-3xl border border-line bg-card', className)}>{children}</div>
 }
 
-export function Pill({ children, className, tone = 'acc' }: { children: ReactNode; className?: string; tone?: 'acc' | 'muted' | 'good' | 'bad' }) {
+export function Pill({ children, className, tone = 'acc' }: { children: ReactNode; className?: string; tone?: 'acc' | 'muted' | 'good' | 'bad' | 'gold' }) {
   return (
     <span
       className={cx(
         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold',
         tone === 'acc' && 'bg-acc-soft text-acc',
         tone === 'muted' && 'bg-card2 text-ink3',
-        tone === 'good' && 'bg-[color-mix(in_srgb,var(--good-mark)_15%,transparent)] text-good',
+        tone === 'good' && 'bg-good-mark/15 text-good',
         tone === 'bad' && 'bg-bad/10 text-bad',
+        tone === 'gold' && 'bg-gold-soft text-gold-ink',
         className,
       )}
     >
@@ -437,8 +438,8 @@ export function Fab({ onClick, label, children }: { onClick: () => void; label: 
     <button
       aria-label={label}
       onClick={onClick}
-      className="press fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-acc-fill text-acc-on shadow-lg shadow-black/20"
-      style={{ bottom: 'calc(84px + env(safe-area-inset-bottom))' }}
+      className="press fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-acc-fill text-acc-on shadow-[0_12px_24px_-10px_var(--acc-fill)]"
+      style={{ bottom: 'calc(96px + env(safe-area-inset-bottom))' }}
     >
       {children}
     </button>

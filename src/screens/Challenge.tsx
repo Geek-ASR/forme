@@ -57,23 +57,23 @@ export default function Challenge() {
 
   return (
     <Page accent="today" back="/" title="120-day challenge">
-      <Card className="mt-1">
+      <div className="hero mt-1 rounded-3xl p-4">
         {c.before ? (
           <>
-            <div className="text-[13px] font-semibold uppercase tracking-wide text-acc">Starts {fmtDay(c.start)}</div>
-            <div className="mt-1 text-[26px] font-bold leading-tight">{1 - c.dayNo === 1 ? 'Tomorrow' : `In ${1 - c.dayNo} days`}</div>
+            <div className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-hero-gold">Starts {fmtDay(c.start)}</div>
+            <div className="font-display mt-1 text-[30px] font-semibold leading-tight">{1 - c.dayNo === 1 ? 'Tomorrow' : `In ${1 - c.dayNo} days`}</div>
           </>
         ) : (
           <>
-            <div className="text-[13px] font-semibold uppercase tracking-wide text-acc">{c.after ? 'Finished' : `Day ${c.dayNo} of ${PLAN_DAYS}`}</div>
-            <div className="mt-1 text-[26px] font-bold leading-tight">{c.after ? `${active.size} of ${PLAN_DAYS} days 🎉` : c.left === 0 ? 'Finish line today 🏁' : `${c.left} day${c.left === 1 ? '' : 's'} to go`}</div>
+            <div className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-hero-gold">{c.after ? 'Finished' : `Day ${c.dayNo} of ${PLAN_DAYS}`}</div>
+            <div className="font-display mt-1 text-[30px] font-semibold leading-tight">{c.after ? `${active.size} of ${PLAN_DAYS} days 🎉` : c.left === 0 ? 'Finish line today 🏁' : `${c.left} day${c.left === 1 ? '' : 's'} to go`}</div>
           </>
         )}
-        <div className="mt-0.5 text-[13.5px] text-ink3">
+        <div className="mt-0.5 text-[13.5px] text-hero-ink2">
           {fmtLong(c.start)} → {fmtLong(c.finish)}
         </div>
-        <Bar className="mt-3" value={shownDays} max={PLAN_DAYS} height={6} />
-      </Card>
+        <Bar className="mt-3" value={shownDays} max={PLAN_DAYS} height={6} color="var(--sheen)" track="var(--hero-track)" />
+      </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
         <Card>
@@ -131,7 +131,7 @@ export default function Challenge() {
                     !past && 'border border-dashed border-line2 text-ink3',
                     d === today && 'ring-2 ring-acc ring-offset-1 ring-offset-card',
                     sel === i && 'outline outline-2 outline-[var(--ink)]',
-                    level >= 3 ? 'text-[var(--heat-on)]' : 'text-ink3',
+                    level >= 3 ? 'text-[var(--heat-on)]' : 'text-ink2',
                   )}
                   style={past ? { background: `var(--heat${level})` } : undefined}
                 >

@@ -136,9 +136,9 @@ export default function Review() {
               {!state && <span className="ml-1.5 rounded-full bg-acc-soft px-2 py-0.5 text-acc">new</span>}
             </div>
             {enFirst ? (
-              <div className="mt-4 text-[30px] font-semibold leading-tight">{card.e}</div>
+              <div className="font-display mt-4 text-[30px] font-semibold leading-tight">{card.e}</div>
             ) : (
-              <div className="mt-4 text-[36px] font-bold leading-tight">
+              <div className="font-display mt-4 text-[36px] font-semibold leading-tight">
                 {card.a && <span className={ART_COLOR[card.a]}>{card.a} </span>}
                 {card.d}
               </div>
@@ -147,12 +147,12 @@ export default function Review() {
               <div className="anim-fade mt-6 w-full">
                 <div className="mx-auto h-px w-24 bg-line2" />
                 {enFirst ? (
-                  <div className="mt-6 text-[32px] font-bold leading-tight">
+                  <div className="font-display mt-6 text-[32px] font-semibold leading-tight">
                     {card.a && <span className={ART_COLOR[card.a]}>{card.a} </span>}
                     {card.d}
                   </div>
                 ) : (
-                  <div className="mt-6 text-[24px] font-semibold leading-snug">{card.e}</div>
+                  <div className="font-display mt-6 text-[24px] font-semibold leading-snug">{card.e}</div>
                 )}
                 {card.p && <div className="mt-1 text-[14.5px] text-ink3">plural: die {card.p}</div>}
                 {card.x && (

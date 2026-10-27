@@ -50,7 +50,7 @@ export default function RatingView({ id }: { id: string }) {
     >
       <div className="pt-3 text-center">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-card2 text-[42px]">{c.emoji}</div>
-        <h1 className="mt-4 text-[28px] font-bold leading-tight tracking-tight">{r.title}</h1>
+        <h1 className="font-display mt-4 text-[30px] font-semibold leading-tight">{r.title}</h1>
         <div className="mt-1 text-[14px] text-ink3">{[r.by, r.year, r.where].filter(Boolean).join(' · ')}</div>
         {r.status === 'done' ? (
           <div className="mt-4 flex flex-col items-center">
@@ -71,7 +71,7 @@ export default function RatingView({ id }: { id: string }) {
         )}
         <div className="mt-3 flex flex-wrap justify-center gap-1.5">
           {r.fav && (
-            <Pill className="bg-[#e34948]/12 text-[#e34948]">
+            <Pill className="bg-fav/12 text-fav">
               <Heart size={12} className="fill-current" /> favourite
             </Pill>
           )}

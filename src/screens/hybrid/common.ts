@@ -27,16 +27,16 @@ export const defaultStatus = (kind: HKind) => (kind === 'idea' ? 'NEW' : kind ==
 
 /** Status pill colours (UI tones, each paired with its text label — never colour alone). */
 export const STATUS_TONE: Record<string, string> = {
-  CANON: 'bg-[#0ca30c]/15 text-good',
-  APPROVED: 'bg-[#0ca30c]/15 text-good',
-  PROPOSED: 'bg-[#2a78d6]/15 text-[var(--der)]',
-  NEW: 'bg-[#2a78d6]/15 text-[var(--der)]',
-  EXPLORING: 'bg-[#6250d6]/15 text-[#6250d6]',
-  UNRESOLVED: 'bg-[#eda100]/20 text-[#855600]',
+  CANON: 'bg-good-mark/15 text-good',
+  APPROVED: 'bg-good-mark/15 text-good',
+  PROPOSED: 'bg-gold-soft text-gold-ink',
+  NEW: 'bg-gold-soft text-gold-ink',
+  EXPLORING: 'bg-mocha/15 text-[var(--der)]',
+  UNRESOLVED: 'bg-amber/15 text-[var(--die)]',
   LEGACY: 'bg-card2 text-ink3',
-  ALTERNATIVE: 'bg-[#6250d6]/15 text-[#6250d6]',
-  RETCON: 'bg-[#e34948]/15 text-bad',
-  REJECTED: 'bg-[#e34948]/15 text-bad',
+  ALTERNATIVE: 'bg-mocha/15 text-[var(--der)]',
+  RETCON: 'bg-bad/10 text-bad',
+  REJECTED: 'bg-bad/10 text-bad',
   ARCHIVED: 'bg-card2 text-ink3',
 }
 

@@ -165,7 +165,7 @@ export default function Editor({ id }: { id?: string }) {
             value={d.title}
             onChange={(e) => setD({ ...d, title: e.target.value })}
             placeholder={d.type === 'blog' ? 'Title' : 'Title (optional)'}
-            className="w-full bg-transparent py-2 text-[26px] font-bold leading-tight outline-none placeholder:text-ink3/50"
+            className="font-display w-full bg-transparent py-2 text-[27px] font-semibold leading-tight outline-none placeholder:text-ink3/50"
             aria-label="Title"
           />
         )}

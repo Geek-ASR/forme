@@ -55,7 +55,7 @@ export function Sheet({
           <div className="h-1.5 w-10 rounded-full bg-line2" />
         </div>
         <div className="flex items-center gap-2 px-5 pb-2 pt-2">
-          <div className="min-w-0 flex-1 truncate text-[18px] font-semibold">{title}</div>
+          <div className="font-display min-w-0 flex-1 truncate text-[20px] font-semibold">{title}</div>
           <button aria-label="Close" onClick={onClose} className="press -mr-2 flex h-10 w-10 items-center justify-center rounded-full text-ink3 hover:bg-card2">
             <X size={20} />
           </button>

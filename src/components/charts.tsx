@@ -338,7 +338,7 @@ export function MoodMonth({ year, month, moods, label }: { year: number; month: 
               key={i}
               title={m ? `${k}: ${moodEmoji(m)}` : k}
               className="flex aspect-square items-center justify-center rounded-lg text-[11px] font-medium"
-              style={{ background: m ? `var(--mood${m})` : 'var(--heat0)', color: m && (m === 1 || m === 5) ? '#fff' : 'var(--ink2)' }}
+              style={{ background: m ? `var(--mood${m})` : 'var(--heat0)', color: m && (m === 1 || m === 5) ? 'var(--mood-on)' : 'var(--ink2)' }}
             >
               {d}
             </div>

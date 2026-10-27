@@ -85,7 +85,7 @@ export default function Plan() {
         <div className="text-[13px] font-semibold uppercase tracking-wide text-acc">
           Phase {p.phase.n} · weeks {p.phase.weeks[0]}–{p.phase.weeks[1]}
         </div>
-        <div className="mt-1 text-[24px] font-bold">{p.phase.name}</div>
+        <div className="font-display mt-1 text-[26px] font-semibold">{p.phase.name}</div>
         <p className="mt-1 text-[14px] leading-relaxed text-ink2">{p.phase.focus}</p>
         {db && <p className="mt-2 rounded-2xl bg-acc-soft px-3 py-2 text-[13px] text-ink2">Effort: {p.phase.effort}</p>}
         <div className="mt-3 flex items-center justify-between text-[13px] text-ink3">

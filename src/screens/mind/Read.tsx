@@ -69,7 +69,7 @@ export default function Read({ id }: { id: string }) {
             </Pill>
           )}
         </div>
-        {p.title && p.type !== 'quote' && <h1 className="mt-3 text-[28px] font-bold leading-tight tracking-tight">{p.title}</h1>}
+        {p.title && p.type !== 'quote' && <h1 className="font-display mt-3 text-[30px] font-semibold leading-tight">{p.title}</h1>}
         <div className={`prose-forme mt-4 ${p.type === 'quote' ? 'text-[1.3rem] italic' : ''}`} dangerouslySetInnerHTML={{ __html: renderMarkdown(p.body) }} />
         {p.type === 'quote' && p.title && <div className="mt-2 text-right text-[15px] text-ink2">— {p.title}</div>}
         {!!p.tags?.length && (

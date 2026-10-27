@@ -87,7 +87,7 @@ export default function Weight() {
             <div className="py-8 text-center text-[14px] text-ink3">Weigh in a few times to see your trend. Daily is ideal — the trend line smooths out water-weight noise.</div>
           )}
           <p className="mt-2 text-[12px] leading-relaxed text-ink3">
-            Blue = smoothed trend (what really matters), grey dots = scale readings, grey line = the plan to {milestone} kg. Long-term goal: {profile.goalWeightKg} kg.
+            Amber line = smoothed trend (what really matters), dots = scale readings, pale line = the plan to {milestone} kg. Long-term goal: {profile.goalWeightKg} kg.
           </p>
         </Card>
       </Section>
